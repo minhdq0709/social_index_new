@@ -17,7 +17,7 @@ namespace SocialNetwork_New.Controller
 		public async Task Crawl()
 		{
 			#region Setup token
-			if (SetupToken($"{Config_System.GET_TOKEN_BACK}") < 10)
+			if (SetupToken($"{Config_System.USER_LIVE}") < 0)
 			{
 				return;
 			}
@@ -33,7 +33,7 @@ namespace SocialNetwork_New.Controller
 				start = int.Parse(text);
 			}
 
-			if (SetupPostToQueue(start) == 0)
+			if (SetupPostToQueue(0) == 0)
 			{
 				start = 0;
 				File.WriteAllText(pathFile, $"{start}");
@@ -160,7 +160,7 @@ namespace SocialNetwork_New.Controller
 				SetValueTokenHistory(tempToken);
 				mysql.InsertToTableFb_Token_History(tempToken);
 
-				if(checkHasError)
+				if (checkHasError)
 				{
 					break;
 				}
