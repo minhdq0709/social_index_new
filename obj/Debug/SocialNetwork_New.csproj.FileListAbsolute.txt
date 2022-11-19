@@ -76,4 +76,3 @@ D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.csproj.CoreCompileInputs
 D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.csproj.CopyComplete
 D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.exe
 D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.pdb
-D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.csproj.AssemblyReference.cache

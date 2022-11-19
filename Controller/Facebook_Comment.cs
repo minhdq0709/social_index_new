@@ -17,7 +17,7 @@ namespace SocialNetwork_New.Controller
 		public async Task Crawl()
 		{
 			#region Setup token
-			if (SetupToken($"{Config_System.USER_LIVE}") < 10)
+			if (SetupToken($"{Config_System.GET_TOKEN_BACK}") < 10)
 			{
 				return;
 			}
