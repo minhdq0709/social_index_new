@@ -78,7 +78,6 @@ namespace SocialNetwork_New.Controller
 
 		private async Task GetComment(SiDemandSourcePost data)
 		{
-			DateTime lastTimeComment = new DateTime();
 			string afterToken = "";
 			ushort limit = 1000;
 			double since = data.update_time.Year == 1 ? 1 : Date_Helper.ConvertDateTimeToTimeStamp(data.update_time);
@@ -88,10 +87,12 @@ namespace SocialNetwork_New.Controller
 			byte loop = 1;
 			HttpClient_Helper client = new HttpClient_Helper();
 			AccessTokenFacebook tempToken = new AccessTokenFacebook();
+			bool checkHasError = false;
 
 			while (true)
 			{
 				tempToken = GetInstanceRoundRobin().Next();
+				checkHasError = false;
 
 				string url = $"https://graph.facebook.com/v14.0/{data.post_id}/comments?limit={limit}" +
 					$"&access_token={tempToken.Token}" +
@@ -123,30 +124,28 @@ namespace SocialNetwork_New.Controller
 				}
 
 				#region Handle error message
-				if (root?.error != null)
+				if (root.error != null)
 				{
+					checkHasError = true;
+
 					if (root.error.message.Contains("The user must be an administrator"))
 					{
 						tempToken.StatusToken = Config_System.PAGE_INVALIDATE;
-						goto end;
 					}
 
 					if (root.error.message.Contains("You cannot access the app till you log in"))
 					{
 						tempToken.StatusToken = Config_System.USER_DIE;
-						goto end;
 					}
 
 					if (root.error.message.Contains("Error validating access token:"))
 					{
 						tempToken.StatusToken = Config_System.GET_TOKEN_BACK;
-						goto end;
 					}
 
 					if (root.error.message.Equals("Error loading application"))
 					{
 						tempToken.StatusToken = Config_System.GET_TOKEN_BACK;
-						goto end;
 					}
 
 					if (root.error.message.Contains("Please reduce the amount"))
@@ -154,19 +153,17 @@ namespace SocialNetwork_New.Controller
 						limit = 100;
 						continue;
 					}
-
-					end:
-					{
-						mysql.InsertToTableFb_Token_History(tempToken);
-						SetValueTokenHistory(tempToken);
-						break;
-					}
 				}
 				#endregion
 
 				#region Set value and send data to kafka
 				SetValueTokenHistory(tempToken);
 				mysql.InsertToTableFb_Token_History(tempToken);
+
+				if(checkHasError)
+				{
+					break;
+				}
 
 				if (!root.data?.Any() ?? true)
 				{
@@ -178,11 +175,6 @@ namespace SocialNetwork_New.Controller
 					if (!string.IsNullOrEmpty(item.message))
 					{
 						item.post_id = data.post_id;
-
-						if (lastTimeComment.Year == 1)
-						{
-							lastTimeComment = DateTime.Parse(item.created_time);
-						}
 
 						++totalComment;
 						string jsonObj = System.Text.Json.JsonSerializer.Serialize<FB_CommentModel>(SetvalueComment(item), String_Helper.opt);

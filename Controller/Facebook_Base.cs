@@ -14,7 +14,7 @@ namespace SocialNetwork_New.Controller
 		private string _path = $"{Environment.CurrentDirectory}/Check/";
 		private Dictionary<int, AccessTokenFacebook> _mapTokenSaveToHistory = new Dictionary<int, AccessTokenFacebook>();
 
-		public virtual int SetupToken(string statusToken)
+		public int SetupToken(string statusToken)
 		{
 			List<AccessTokenFacebook> listToken = new List<AccessTokenFacebook>();
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
@@ -38,7 +38,7 @@ namespace SocialNetwork_New.Controller
 			return listToken.Count;
 		}
 
-		public virtual FB_CommentModel SetvalueComment(Datum2 data)
+		public FB_CommentModel SetvalueComment(Datum2 data)
 		{
 			return new FB_CommentModel
 			{
