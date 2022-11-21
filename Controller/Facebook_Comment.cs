@@ -80,7 +80,7 @@ namespace SocialNetwork_New.Controller
 		{
 			string afterToken = "";
 			ushort limit = 1000;
-			double since = data.update_time.Year == 1 ? 1 : Date_Helper.ConvertDateTimeToTimeStamp(data.update_time);
+			double since = Date_Helper.ConvertDateTimeToTimeStamp(data.update_time);
 			Kafka_Helper kh = new Kafka_Helper();
 			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79);
 			int totalComment = 0;

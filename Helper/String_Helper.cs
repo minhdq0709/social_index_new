@@ -52,5 +52,14 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
+		public static long convertTextToNumber(string text)
+		{
+			if (String.IsNullOrEmpty(text))
+			{
+				return 0;
+			}
+
+			return long.Parse(Regex.Replace(text, @"\D", ""));
+		}
 	}
 }

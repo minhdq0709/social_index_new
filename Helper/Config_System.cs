@@ -5,7 +5,7 @@
 		public static readonly string TOPIC_TIKTOK_POST = "crawler-data-tiktok";
 		public static readonly string TOPIC_TIKTOK_COMMENT = "crawler-data-tiktok-comment";
 		public static readonly string TOPIC_FB_CAMPAIGN = "fb-campaign-crawler";
-		public static readonly string TOPIC_TWETTER = "datacollection-twitter-crawler";
+		public static readonly string TOPIC_TWITTER = "datacollection-twitter-crawler";
 		public static readonly string TOPIC_FB_GROUP_COMMENT = "fb-group-cmt-crawler";
 		public static readonly string TEST = "crawler-fb-group-cmt";
 
@@ -29,8 +29,13 @@
 		public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
 
 		/* Telegram */
-		private const string KEY_BOT = "5119893484:AAGZbx3izF7B8ywoDmc5gIaAwYRw26doAQ4";
-		private const string KEY_BOT_TIKTOK = "5506812278:AAFndGcZgcLwXxxnRwTpKaONdpO7iWv4x6c";
-		private const string KEY_ALERT_ACCOUNT_FB_DIE = "5151385536:AAGlVfEU0OqsP3KEQqN_BaSDyj1zyQAHxfU";
+		public const string KEY_BOT = "5119893484:AAGZbx3izF7B8ywoDmc5gIaAwYRw26doAQ4";
+		public const string KEY_BOT_TIKTOK = "5506812278:AAFndGcZgcLwXxxnRwTpKaONdpO7iWv4x6c";
+		public const string KEY_ALERT_ACCOUNT_FB_DIE = "5151385536:AAGlVfEU0OqsP3KEQqN_BaSDyj1zyQAHxfU";
+
+		/* Type token */
+		public const byte YOUTUBE_TOKEN = 1;
+		public const byte TIKTOK_135_TOKEN = 2;
+		public const byte TWITTER_TOKEN = 3;
 	}
 }

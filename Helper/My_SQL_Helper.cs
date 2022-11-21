@@ -33,11 +33,11 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
-		public List<SiDemandSource> SelectFromTableSiDemandSource(int start, int priority, string platform, int ticket_id)
+		public List<SiDemandSource> SelectFromTableSiDemandSource(int start, string platform)
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM social_index_v2.si_demand_source where platform = '{platform}' and priority = {priority} and ticket_id = {ticket_id} limit {start}, 200;";
+			string query = $"SELECT * FROM social_index_v2.si_demand_source where platform = '{platform}' order by priority desc limit {start}, 200;";
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
@@ -340,6 +340,54 @@ namespace SocialNetwork_New.Helper
 
 				return 0;
 			}
+		}
+
+		public List<Token_Yt_Tiktok_TwitterModel> SelectTokenYT_Tiktok_Twitetr(byte type)
+		{
+			_conn.Open();
+
+			string query = $"SELECT * FROM FacebookDb.Token_YT_Tiktok where Status_ = {type} order by Number_Of_Uesd_To_Token desc;";
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			List<Token_Yt_Tiktok_TwitterModel> metaData = new List<Token_Yt_Tiktok_TwitterModel>();
+			try
+			{
+				MySqlDataReader row = cmd.ExecuteReader();
+
+				if (row.HasRows)
+				{
+					while (row.Read())
+					{
+						try
+						{
+							Token_Yt_Tiktok_TwitterModel data = new Token_Yt_Tiktok_TwitterModel();
+							data.Id = Int32.Parse(row["Id"].ToString());
+							data.Token = row["Token"].ToString();
+							data.Status_ = Int32.Parse(row["Status_"].ToString());
+							data.Number_Of_Uesd_To_Token = Int32.Parse(row["Status_"].ToString());
+
+							metaData.Add(data);
+						}
+						catch (Exception)
+						{
+							Console.WriteLine();
+						}
+					}
+				}
+
+				_conn.Close();
+			}
+			catch (Exception)
+			{
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+			}
+
+			return metaData;
 		}
 	}
 }
