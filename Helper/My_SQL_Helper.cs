@@ -33,7 +33,7 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
-		public List<SiDemandSource> SelectFromTableSiDemandSource(int start, string platform)
+		public List<SiDemandSource_Model> SelectFromTableSiDemandSource(int start, string platform)
 		{
 			_conn.Open();
 
@@ -42,7 +42,7 @@ namespace SocialNetwork_New.Helper
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
 
-			List<SiDemandSource> metaData = new List<SiDemandSource>();
+			List<SiDemandSource_Model> metaData = new List<SiDemandSource_Model>();
 			try
 			{
 				MySqlDataReader row = cmd.ExecuteReader();
@@ -53,7 +53,7 @@ namespace SocialNetwork_New.Helper
 					{
 						try
 						{
-							metaData.Add(new SiDemandSource
+							metaData.Add(new SiDemandSource_Model
 							{
 								id = Convert.ToInt32(row["id"].ToString()),
 								platform = row["platform"].ToString(),
@@ -90,16 +90,16 @@ namespace SocialNetwork_New.Helper
 			return metaData;
 		}
 
-		public List<SiDemandSourcePost> SelectFromTableSiDemandSourcePost(int start, string platform)
+		public List<SiDemandSourcePost_Model> SelectFromTableSiDemandSourcePost(int start, string platform)
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' limit {start}, 200;";
+			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' and status in ({Config_System.NEW_DATA}, {Config_System.ERROR}) limit {start}, 200;";
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
 
-			List<SiDemandSourcePost> metaData = new List<SiDemandSourcePost>();
+			List<SiDemandSourcePost_Model> metaData = new List<SiDemandSourcePost_Model>();
 			try
 			{
 				MySqlDataReader row = cmd.ExecuteReader();
@@ -110,7 +110,7 @@ namespace SocialNetwork_New.Helper
 					{
 						try
 						{
-							metaData.Add(new SiDemandSourcePost
+							metaData.Add(new SiDemandSourcePost_Model
 							{
 								id = Convert.ToInt32(row["id"].ToString()),
 								si_demand_source_id = Convert.ToInt32(row["si_demand_source_id"].ToString()),
@@ -142,7 +142,7 @@ namespace SocialNetwork_New.Helper
 			return metaData;
 		}
 
-		public List<SiDemandSourcePost> SelectFieldBaseFromTableSiDemandSourcePost(int start, string platform)
+		public List<SiDemandSourcePost_Model> SelectFieldBaseFromTableSiDemandSourcePost(int start, string platform)
 		{
 			_conn.Open();
 
@@ -151,7 +151,7 @@ namespace SocialNetwork_New.Helper
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
 
-			List<SiDemandSourcePost> metaData = new List<SiDemandSourcePost>();
+			List<SiDemandSourcePost_Model> metaData = new List<SiDemandSourcePost_Model>();
 			try
 			{
 				MySqlDataReader row = cmd.ExecuteReader();
@@ -162,7 +162,7 @@ namespace SocialNetwork_New.Helper
 					{
 						try
 						{
-							metaData.Add(new SiDemandSourcePost
+							metaData.Add(new SiDemandSourcePost_Model
 							{
 								id = Convert.ToInt32(row["id"].ToString()),
 								post_id = row["post_id"].ToString(),
@@ -306,7 +306,7 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
-		public int InsertToTableHistoryFbPost(SiDemandSourcePost data)
+		public int InsertToTableHistoryFbPost(SiDemandSourcePost_Model data)
 		{
 			try
 			{
@@ -388,6 +388,37 @@ namespace SocialNetwork_New.Helper
 			}
 
 			return metaData;
+		}
+
+		public void UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(SiDemandSourcePost_Model data)
+		{
+			_conn.Open();
+
+			string query = $"UPDATE social_index_v2.si_demand_source_post SET update_time = @update_time, status = @status, user_crawler = @user_crawler where Id = @Id;";
+
+			MySqlCommand cmd = new MySqlCommand();
+
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			cmd.Parameters.AddWithValue("@update_time", DateTime.Now);
+			cmd.Parameters.AddWithValue("@status", Config_System.DONE);
+			cmd.Parameters.AddWithValue("@user_crawler", "Minhdq");
+			cmd.Parameters.AddWithValue("@Id", data.id);
+
+			try
+			{
+				cmd.ExecuteNonQuery();
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateStatusTokenByUser.txt", ex.ToString() + "\n" + query + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+			}
 		}
 	}
 }

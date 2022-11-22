@@ -2,7 +2,7 @@
 
 namespace SocialNetwork_New.Model
 {
-	class SiDemandSourcePost: Facebook_Post_Base_Model
+	class SiDemandSourcePost_Model: Facebook_Post_Base_Model
 	{
 		public int si_demand_source_id{ set; get; }
 		public string link{ set; get; }

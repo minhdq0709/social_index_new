@@ -12,10 +12,11 @@ namespace SocialNetwork_New.Controller
 {
 	class Facebook_Comment : Facebook_Base
 	{
-		private static volatile ConcurrentQueue<SiDemandSourcePost> _myQueue = new ConcurrentQueue<SiDemandSourcePost>();
+		private static volatile ConcurrentQueue<SiDemandSourcePost_Model> _myQueue = new ConcurrentQueue<SiDemandSourcePost_Model>();
 
-		public async Task Crawl()
+		public async Task Crawl(byte totalThread)
 		{
+			List<Task> listTask = new List<Task>();
 			#region Setup token
 			if (SetupToken($"{Config_System.USER_LIVE}") < 0)
 			{
@@ -45,14 +46,12 @@ namespace SocialNetwork_New.Controller
 			#endregion
 
 			#region Crawl
-			Task t1 = Run(1);
-			//Task t2 = Run(2);
-			//Task t3 = Run(3);
-			//Task t4 = Run(4);
-			//Task t5 = Run(5);
-			//Task t6 = Run(6);
+			for(byte i = 1; i <= totalThread; ++i)
+			{
+				listTask.Add(Run(i));
+			}
 
-			await Task.WhenAll(t1); //t2, t3, t4, t5, t6
+			await Task.WhenAll(listTask); //t2, t3, t4, t5, t6
 			#endregion
 
 			#region Update to db - Send msg to kafka
@@ -66,9 +65,9 @@ namespace SocialNetwork_New.Controller
 
 		private int SetupPostToQueue(int start)
 		{
-			List<SiDemandSourcePost> listData = GetListPost(start, "facebook").OfType<SiDemandSourcePost>().ToList();
+			List<SiDemandSourcePost_Model> listData = GetListPost(start, "facebook").OfType<SiDemandSourcePost_Model>().ToList();
 
-			foreach (SiDemandSourcePost item in listData)
+			foreach (SiDemandSourcePost_Model item in listData)
 			{
 				_myQueue.Enqueue(item);
 			}
@@ -76,7 +75,7 @@ namespace SocialNetwork_New.Controller
 			return listData.Count;
 		}
 
-		private async Task GetComment(SiDemandSourcePost data)
+		private async Task GetComment(SiDemandSourcePost_Model data)
 		{
 			string afterToken = "";
 			ushort limit = 1000;
@@ -206,7 +205,7 @@ namespace SocialNetwork_New.Controller
 
 		private async Task Run(byte indexThread)
 		{
-			SiDemandSourcePost infoPost;
+			SiDemandSourcePost_Model infoPost;
 			while (_myQueue.TryDequeue(out infoPost))
 			{
 				try

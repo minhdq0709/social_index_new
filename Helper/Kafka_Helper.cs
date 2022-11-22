@@ -24,9 +24,12 @@ namespace SocialNetwork_New.Helper
 		{
 			try
 			{
-				DeliveryResult<string, string> val = await producer.ProduceAsync(topic, new Message<string, string> { Value = messagejson });
-				producer.Flush(TimeSpan.FromMilliseconds(100));
+				DeliveryResult<string, string> val = await producer.ProduceAsync(
+					topic, 
+					new Message<string, string> { Value = messagejson }
+				);
 
+				producer.Flush(TimeSpan.FromMilliseconds(100));
 				return true;
 			}
 			catch (Exception ex)

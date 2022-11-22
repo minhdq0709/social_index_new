@@ -17,7 +17,7 @@
 		public static readonly int PAGE_INVALIDATE = 105;
 		public static readonly int USER_LIVE = 1;
 
-		public static readonly string PROXY_ONLY_ONE_IP = "http://10.3.51.70:6210";
+		public static readonly string PROXY_DEFAULT_IP = "http://10.3.51.70:6210";
 		public static readonly string PROXY_RANDOM_IP = "http://10.5.3.24:6210";
 
 		/* Server */
@@ -29,13 +29,19 @@
 		public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
 
 		/* Telegram */
-		public const string KEY_BOT = "5119893484:AAGZbx3izF7B8ywoDmc5gIaAwYRw26doAQ4";
-		public const string KEY_BOT_TIKTOK = "5506812278:AAFndGcZgcLwXxxnRwTpKaONdpO7iWv4x6c";
-		public const string KEY_ALERT_ACCOUNT_FB_DIE = "5151385536:AAGlVfEU0OqsP3KEQqN_BaSDyj1zyQAHxfU";
+		public static readonly string KEY_BOT = "5119893484:AAGZbx3izF7B8ywoDmc5gIaAwYRw26doAQ4";
+		public static readonly string KEY_BOT_TIKTOK = "5506812278:AAFndGcZgcLwXxxnRwTpKaONdpO7iWv4x6c";
+		public static readonly string KEY_ALERT_ACCOUNT_FB_DIE = "5151385536:AAGlVfEU0OqsP3KEQqN_BaSDyj1zyQAHxfU";
 
 		/* Type token */
-		public const byte YOUTUBE_TOKEN = 1;
-		public const byte TIKTOK_135_TOKEN = 2;
-		public const byte TWITTER_TOKEN = 3;
+		public static readonly byte YOUTUBE_TOKEN = 1;
+		public static readonly byte TIKTOK_135_TOKEN = 2;
+		public static readonly byte TWITTER_TOKEN = 3;
+
+		/* Status crawl */
+		public static readonly sbyte DONE = 2;
+		public static readonly sbyte NEW_DATA = 0;
+		public static readonly sbyte ERROR = -1;
+		public static readonly sbyte HANDLING = 1;
 	}
 }

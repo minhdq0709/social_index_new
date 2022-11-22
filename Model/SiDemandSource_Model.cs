@@ -2,7 +2,7 @@
 
 namespace SocialNetwork_New.Model
 {
-	class SiDemandSource
+	class SiDemandSource_Model
 	{
 		public int id { set; get; }
 		public string platform { set; get; }
