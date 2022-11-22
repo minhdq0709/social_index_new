@@ -170,7 +170,10 @@ namespace SocialNetwork_New.Helper
 								update_time = Convert.ToDateTime(row["update_time"].ToString())
 							});
 						}
-						catch (Exception) { }
+						catch (Exception ex)
+						{
+							File.AppendAllText($"{Environment.CurrentDirectory}/Check/SelectFieldBaseFromTableSiDemandSourcePost.txt", ex.ToString() + "\n" + query + "\n");
+						}
 					}
 				}
 
@@ -221,9 +224,9 @@ namespace SocialNetwork_New.Helper
 
 							metaData.Add(data);
 						}
-						catch (Exception)
+						catch (Exception ex)
 						{
-							Console.WriteLine();
+							File.AppendAllText($"{Environment.CurrentDirectory}/Check/SelectToken.txt", ex.ToString() + "\n" + query + "\n");
 						}
 					}
 				}
@@ -301,7 +304,7 @@ namespace SocialNetwork_New.Helper
 					_conn.Close();
 				}
 
-				File.AppendAllText($"{Environment.CurrentDirectory}/Check/err.txt", ex.ToString() + "\n");
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/InsertToTableFb_Token_History.txt", ex.ToString() + "\n");
 				return 0;
 			}
 		}

@@ -5,12 +5,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SocialNetwork_New.Controller
 {
-	class Facebook_Comment : Facebook_Base
+	class Facebook_Si_Demand_Source_Post : Facebook_Base
 	{
 		private static volatile ConcurrentQueue<SiDemandSourcePost_Model> _myQueue = new ConcurrentQueue<SiDemandSourcePost_Model>();
 
@@ -18,7 +19,7 @@ namespace SocialNetwork_New.Controller
 		{
 			List<Task> listTask = new List<Task>();
 			#region Setup token
-			if (SetupToken($"{Config_System.USER_LIVE}") < 0)
+			if (SetupToken($"{Config_System.USER_LIVE}") == 0)
 			{
 				return;
 			}
@@ -176,7 +177,7 @@ namespace SocialNetwork_New.Controller
 						item.post_id = data.post_id;
 
 						++totalComment;
-						string jsonObj = System.Text.Json.JsonSerializer.Serialize<FB_CommentModel>(SetvalueComment(item), String_Helper.opt);
+						string jsonObj = JsonSerializer.Serialize<FB_CommentModel>(SetvalueComment(item), String_Helper.opt);
 						await kh.InsertPost(jsonObj, Config_System.TOPIC_FB_GROUP_COMMENT);
 					}
 				}
