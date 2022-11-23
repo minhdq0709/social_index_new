@@ -37,8 +37,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AngleSharp, Version=0.17.0.0, Culture=neutral, PublicKeyToken=e83494dcdc6d31ea, processorArchitecture=MSIL">
+      <HintPath>packages\AngleSharp.0.17.0\lib\net472\AngleSharp.dll</HintPath>
+    </Reference>
     <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
       <HintPath>packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="CliWrap, Version=3.5.0.0, Culture=neutral, PublicKeyToken=1c4a4fc2d6886e5a, processorArchitecture=MSIL">
+      <HintPath>packages\CliWrap.3.5.0\lib\net461\CliWrap.dll</HintPath>
     </Reference>
     <Reference Include="Confluent.Kafka, Version=1.9.3.0, Culture=neutral, PublicKeyToken=12c514ca49093d1e, processorArchitecture=MSIL">
       <HintPath>packages\Confluent.Kafka.1.9.3\lib\net462\Confluent.Kafka.dll</HintPath>
@@ -107,8 +113,16 @@
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Text.Encoding.CodePages, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Text.Encoding.CodePages.5.0.0\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
+    </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.7.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
@@ -131,17 +145,30 @@
     <Reference Include="Telegram.Bot, Version=18.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Telegram.Bot.18.0.0\lib\netstandard2.0\Telegram.Bot.dll</HintPath>
     </Reference>
+    <Reference Include="YoutubeExplode, Version=6.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\YoutubeExplode.6.2.4\lib\net461\YoutubeExplode.dll</HintPath>
+    </Reference>
+    <Reference Include="YoutubeExplode.Converter, Version=6.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\YoutubeExplode.Converter.6.2.4\lib\net461\YoutubeExplode.Converter.dll</HintPath>
+    </Reference>
     <Reference Include="ZstdNet, Version=1.4.5.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>packages\MySql.Data.8.0.31\lib\net48\ZstdNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller\Facebook_Base.cs" />
-    <Compile Include="Controller\Facebook_Comment.cs" />
+    <Compile Include="Controller\Facebook_Si_Demand_Source_Post.cs" />
+    <Compile Include="Controller\Tiktok_Base.cs" />
+    <Compile Include="Controller\Tiktok_Si_Demand_Source.cs" />
+    <Compile Include="Controller\Tiktok_Si_Demand_Source_Post.cs" />
+    <Compile Include="Controller\Twitter.cs" />
+    <Compile Include="Controller\Youtube_Base.cs" />
+    <Compile Include="Controller\Youtube_Si_Demand_Source.cs" />
     <Compile Include="Helper\Config_System.cs" />
     <Compile Include="Helper\Date_Helper.cs" />
     <Compile Include="Helper\HttpClient_Helper.cs" />
     <Compile Include="Helper\Kafka_Helper.cs" />
+    <Compile Include="Helper\MyTube_Helper.cs" />
     <Compile Include="Helper\My_SQL_Helper.cs" />
     <Compile Include="Helper\String_Helper.cs" />
     <Compile Include="Helper\Telegram_Helper.cs" />
@@ -149,8 +176,18 @@
     <Compile Include="Model\FacebookModel.cs" />
     <Compile Include="Model\Facebook_Post_Base_Model.cs" />
     <Compile Include="Model\FB_CommentModel.cs" />
-    <Compile Include="Model\SiDemandSource.cs" />
-    <Compile Include="Model\SiDemandSourcePost.cs" />
+    <Compile Include="Model\SiDemandSource_Model.cs" />
+    <Compile Include="Model\SiDemandSourcePost_Model.cs" />
+    <Compile Include="Model\Tiktok_Comment_Kafka_Model.cs" />
+    <Compile Include="Model\Tiktok_Comment_Rapid_Model.cs" />
+    <Compile Include="Model\Tiktok_Post_Kafka_Model.cs" />
+    <Compile Include="Model\Tiktok_Post_Rapid_Model.cs" />
+    <Compile Include="Model\Tiktok_Rapid_API6_Model.cs" />
+    <Compile Include="Model\Token_Yt_Tiktok_TwitterModel.cs" />
+    <Compile Include="Model\TweetModel.cs" />
+    <Compile Include="Model\Youtube_Comment_Kafka_Model.cs" />
+    <Compile Include="Model\Youtube_Detail_Video_Kafka_Model.cs" />
+    <Compile Include="Model\Youtube_Model.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -167,6 +204,8 @@
     <Error Condition="!Exists('packages\librdkafka.redist.1.9.2\build\librdkafka.redist.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\librdkafka.redist.1.9.2\build\librdkafka.redist.props'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('packages\YoutubeExplode.6.2.4\build\YoutubeExplode.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\YoutubeExplode.6.2.4\build\YoutubeExplode.targets'))" />
   </Target>
   <Import Project="packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="packages\YoutubeExplode.6.2.4\build\YoutubeExplode.targets" Condition="Exists('packages\YoutubeExplode.6.2.4\build\YoutubeExplode.targets')" />
 </Project>

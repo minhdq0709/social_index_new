@@ -146,7 +146,7 @@ namespace SocialNetwork_New.Helper
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' limit {start}, 200;";
+			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' and status in ({Config_System.NEW_DATA}, {Config_System.ERROR}) limit {start}, 200;";
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
@@ -309,6 +309,42 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
+		public uint InsertToTableSi_demand_source_post(Tiktok_Post_Kafka_Model data)
+		{
+			try
+			{
+				_conn.Open();
+
+				string query = "Insert into social_index_v2.si_demand_source_post(post_id, platform, link, create_time, update_time) " +
+					"values(@post_id, @platform, @link, @create_time, @update_time);";
+
+				MySqlCommand cmd = new MySqlCommand();
+				cmd.Connection = _conn;
+				cmd.CommandText = query;
+
+				cmd.Parameters.Add("@post_id", MySqlDbType.VarChar).Value = data.IdVideo;
+				cmd.Parameters.Add("@platform", MySqlDbType.VarChar).Value = "tiktok";
+				cmd.Parameters.Add("@link", MySqlDbType.VarChar).Value = data.LinkVideo;
+				cmd.Parameters.Add("@create_time", MySqlDbType.Timestamp).Value = data.TimeCreated;
+				cmd.Parameters.Add("@update_time", MySqlDbType.Timestamp).Value = data.TimeCreated;
+
+				uint row = (uint)cmd.ExecuteNonQuery();
+				_conn.Close();
+
+				return row;
+			}
+			catch (Exception ex)
+			{
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/InsertToTableFb_Token_History.txt", ex.ToString() + "\n");
+				return 0;
+			}
+		}
+
 		public int InsertToTableHistoryFbPost(SiDemandSourcePost_Model data)
 		{
 			try
@@ -405,7 +441,7 @@ namespace SocialNetwork_New.Helper
 			cmd.CommandText = query;
 
 			cmd.Parameters.AddWithValue("@update_time", DateTime.Now);
-			cmd.Parameters.AddWithValue("@status", Config_System.DONE);
+			cmd.Parameters.AddWithValue("@status", data.status);
 			cmd.Parameters.AddWithValue("@user_crawler", "Minhdq");
 			cmd.Parameters.AddWithValue("@Id", data.id);
 

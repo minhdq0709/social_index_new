@@ -35,7 +35,7 @@ namespace SocialNetwork_New.Controller
 				start = int.Parse(text);
 			}
 
-			if (SetupPostToQueue(0) == 0)
+			if (SetupPostToQueue(start) == 0)
 			{
 				start = 0;
 				File.WriteAllText(pathFile, $"{start}");
@@ -178,7 +178,7 @@ namespace SocialNetwork_New.Controller
 
 						++totalComment;
 						string jsonObj = JsonSerializer.Serialize<FB_CommentModel>(SetvalueComment(item), String_Helper.opt);
-						await kh.InsertPost(jsonObj, Config_System.TOPIC_FB_GROUP_COMMENT);
+						await kh.InsertPost(jsonObj, Config_System.TEST);
 					}
 				}
 				#endregion
@@ -212,6 +212,12 @@ namespace SocialNetwork_New.Controller
 				try
 				{
 					await GetComment(infoPost);
+
+					using(My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+					{
+						infoPost.status = Config_System.DONE;
+						mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(infoPost);
+					}
 				}
 				catch (Exception) { }
 

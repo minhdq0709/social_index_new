@@ -3,6 +3,7 @@ using SocialNetwork_New.Model;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SocialNetwork_New.Controller
@@ -18,8 +19,6 @@ namespace SocialNetwork_New.Controller
 			{
 				return;
 			}
-
-			await demo();
 
 			int start = 0;
 
@@ -42,7 +41,11 @@ namespace SocialNetwork_New.Controller
 
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
 			{
-				listData = mysql.SelectFromTableSiDemandSource(start, "tiktok");
+				listData = mysql.SelectFromTableSiDemandSource(start, "tiktok")
+					.GroupBy(x => x.link)
+					.Select(x => x.First())
+					.ToList();
+
 				if (listData.Any())
 				{
 					foreach (SiDemandSource_Model item in listData)
@@ -55,19 +58,69 @@ namespace SocialNetwork_New.Controller
 			return listData.Count;
 		}
 
-		private async Task demo()
+		private async Task GetVideo(SiDemandSource_Model data)
 		{
 			HttpClient_Helper client = new HttpClient_Helper();
+			string template = @"https://tiktok-api6.p.rapidapi.com/user/videos?username={0}";
+			string nameUser = Regex.Match(data.link, @"(?<=tiktok.com/@)[\w\W\d]+").Value;
+
 			string json = await client.GetAsyncDataByRapidAsync(
-				"https://tiktok-all-in-one.p.rapidapi.com/user/videos?id=6603307560873934849&max_cursor=0",
+				string.Format(template, nameUser),
 				GetInstanceRoundRobin().Next().Token,
-				"tiktok-all-in-one.p.rapidapi.com");
+				"tiktok-api6.p.rapidapi.com");
+
+			Tiktok_Rapid_API6_Model.Root listVideo = String_Helper.ToObject<Tiktok_Rapid_API6_Model.Root>(json);
+			if(!listVideo?.videos?.Any() ?? true)
+			{
+				return;
+			}
+
+			Kafka_Helper kh = new Kafka_Helper();
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			{
+				foreach (Tiktok_Rapid_API6_Model.Video item in listVideo.videos)
+				{
+					Tiktok_Post_Kafka_Model dataSendKafka = SetContentPost(item);
+					await kh.InsertPost(String_Helper.ToJson<Tiktok_Post_Kafka_Model>(dataSendKafka), Config_System.TOPIC_TIKTOK_POST);
+
+					mysql.InsertToTableSi_demand_source_post(dataSendKafka);
+				}
+			}
 		}
 
 		private async Task Run(byte thread)
 		{
-			await Task.Delay(1);
-			return;
+			SiDemandSource_Model tempData;
+			while (_myQueue.TryDequeue(out tempData))
+			{
+				await GetVideo(tempData);
+				await Task.Delay(thread * 1_000);
+			}
+		}
+
+		private Tiktok_Post_Kafka_Model SetContentPost(Tiktok_Rapid_API6_Model.Video data)
+		{
+			string template = "https://www.tiktok.com/@{0}/video/{1}";
+
+			return new Tiktok_Post_Kafka_Model
+			{
+				IdVideo = data?.video_id,
+				UserName = data?.author,
+				IdUser = data?.author_id,
+				UrlUser = $@"https://www.tiktok.com/@{data?.author}",
+				Avatar = data?.avatar_thumb,
+
+				Content = data?.description,
+				LinkVideo = string.Format(template, data?.author, data?.video_id),
+
+				Likes = data.statistics?.number_of_hearts ?? 0,
+				CommentCounts = data.statistics?.number_of_comments ?? 0,
+				Shares = data.statistics?.number_of_reposts ?? 0,
+				PlayCounts = data.statistics?.number_of_plays ?? 0,
+
+				TimeCreateTimeStamp = double.Parse(data.create_time ?? "1"),
+				TimeCreated = Date_Helper.UnixTimeStampToDateTime(double.Parse(data.create_time ?? "1"))
+			};
 		}
 	}
 }

@@ -76,3 +76,13 @@ D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.csproj.CoreCompileInputs
 D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.csproj.CopyComplete
 D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.exe
 D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.pdb
+D:\Pj_New\SocialNetwork_New\bin\Debug\AngleSharp.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\CliWrap.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\System.Text.Encoding.CodePages.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\YoutubeExplode.Converter.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\YoutubeExplode.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\AngleSharp.xml
+D:\Pj_New\SocialNetwork_New\bin\Debug\CliWrap.xml
+D:\Pj_New\SocialNetwork_New\bin\Debug\System.Text.Encoding.CodePages.xml
+D:\Pj_New\SocialNetwork_New\bin\Debug\YoutubeExplode.xml
+D:\Pj_New\SocialNetwork_New\bin\Debug\YoutubeExplode.Converter.xml

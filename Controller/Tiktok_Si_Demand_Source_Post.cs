@@ -1,11 +1,9 @@
 ﻿using SocialNetwork_New.Helper;
 using SocialNetwork_New.Model;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SocialNetwork_New.Controller
@@ -13,7 +11,7 @@ namespace SocialNetwork_New.Controller
 	/// <summary>
 	/// Only get comment of video
 	/// </summary>
-	class Tiktok_Si_Demand_Source_Post: Tiktok_Base
+	class Tiktok_Si_Demand_Source_Post : Tiktok_Base
 	{
 		private static volatile ConcurrentQueue<SiDemandSourcePost_Model> _myQueue = new ConcurrentQueue<SiDemandSourcePost_Model>();
 
@@ -38,7 +36,7 @@ namespace SocialNetwork_New.Controller
 				start = int.Parse(text);
 			}
 
-			if(SetupListPost(0) == 0) // todo
+			if (SetupListPost(0) == 0) // todo
 			{
 				start = 0;
 				File.WriteAllText(pathFile, $"{start}");
@@ -50,7 +48,7 @@ namespace SocialNetwork_New.Controller
 			#endregion
 
 			#region Crawl
-			for(byte i = 1; i <= totalThread; ++i)
+			for (byte i = 1; i <= totalThread; ++i)
 			{
 				listTask.Add(Run(i));
 			}
@@ -62,14 +60,14 @@ namespace SocialNetwork_New.Controller
 		private int SetupListPost(int start)
 		{
 			List<SiDemandSourcePost_Model> listData = new List<SiDemandSourcePost_Model>();
-			using(My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				listData = mysql.SelectFromTableSiDemandSourcePost(start, "tiktok");
 			}
 
-			if(listData.Any())
+			if (listData.Any())
 			{
-				foreach(SiDemandSourcePost_Model item in listData)
+				foreach (SiDemandSourcePost_Model item in listData)
 				{
 					_myQueue.Enqueue(item);
 				}
@@ -80,7 +78,7 @@ namespace SocialNetwork_New.Controller
 
 		private async Task GetComment(SiDemandSourcePost_Model data)
 		{
-			if(string.IsNullOrEmpty(data.post_id))
+			if (string.IsNullOrEmpty(data.post_id))
 			{
 				return;
 			}
@@ -90,7 +88,7 @@ namespace SocialNetwork_New.Controller
 			HttpClient_Helper client = new HttpClient_Helper();
 			string template = @"https://tiktok-all-in-one.p.rapidapi.com/video/comments?id={0}&offset={1}";
 
-			while(true)
+			while (true)
 			{
 				await Task.Delay(20_000);
 
@@ -100,22 +98,22 @@ namespace SocialNetwork_New.Controller
 					"tiktok-all-in-one.p.rapidapi.com",
 					false);
 
-				if(string.IsNullOrEmpty(json))
+				if (string.IsNullOrEmpty(json))
 				{
 					data.status = Config_System.ERROR;
 					return;
 				}
 
 				Tiktok_Comment_Rapid_Model cmtData = String_Helper.ToObject<Tiktok_Comment_Rapid_Model>(json);
-				if( (!cmtData?.comments?.Any() ?? true) || cmtData.status_code != 0 )
+				if ((!cmtData?.comments?.Any() ?? true) || cmtData.status_code != 0)
 				{
 					return;
 				}
 
-				foreach(Comment item in cmtData.comments)
+				foreach (Comment item in cmtData.comments)
 				{
 					Tiktok_Comment_Kafka_Model dataKafka = SetContentComment(item);
-					if(!string.IsNullOrEmpty(dataKafka.Content))
+					if (!string.IsNullOrEmpty(dataKafka.Content))
 					{
 						await kf.InsertPost(
 							String_Helper.ToJson<Tiktok_Comment_Kafka_Model>(dataKafka),
@@ -124,7 +122,7 @@ namespace SocialNetwork_New.Controller
 					}
 				}
 
-				if(cmtData.has_more != 1)
+				if (cmtData.has_more != 1)
 				{
 					break;
 				}
@@ -133,7 +131,7 @@ namespace SocialNetwork_New.Controller
 			}
 
 			/* Update in4 post to db */
-			using(My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(data);
 			}
@@ -141,7 +139,7 @@ namespace SocialNetwork_New.Controller
 
 		private async Task GetDetailPost(SiDemandSourcePost_Model data)
 		{
-			if(string.IsNullOrEmpty(data.post_id))
+			if (string.IsNullOrEmpty(data.post_id))
 			{
 				return;
 			}
@@ -158,14 +156,14 @@ namespace SocialNetwork_New.Controller
 				false
 			);
 
-			if(string.IsNullOrEmpty(json))
+			if (string.IsNullOrEmpty(json))
 			{
 				data.status = Config_System.ERROR;
 				return;
 			}
 
 			Tiktok_Post_Rapid_Model tempData = String_Helper.ToObject<Tiktok_Post_Rapid_Model>(json);
-			if(data is null || data.status != 0)
+			if (data is null || data.status != 0)
 			{
 				return;
 			}
@@ -182,7 +180,7 @@ namespace SocialNetwork_New.Controller
 		private async Task Run(byte indexThread)
 		{
 			SiDemandSourcePost_Model tempData;
-			while(_myQueue.TryDequeue(out tempData))
+			while (_myQueue.TryDequeue(out tempData))
 			{
 				await GetComment(tempData);
 				await Task.Delay(indexThread * 1_000);

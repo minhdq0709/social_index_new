@@ -8,39 +8,101 @@ namespace SocialNetwork_New
 	{
 		static async Task Main(string[] args)
 		{
-			Console.WriteLine("1: Get comment si_demand_source_post");
+			Console.WriteLine("1: Get fb comment si_demand_source_post");
 			Console.WriteLine("2: Get Tweet");
-			Console.WriteLine("2: Tiktok si demand source");
+			Console.WriteLine("3: Tiktok si demand source");
+			Console.WriteLine("4: Tiktok si demand source post");
 
-			int choose = int.Parse(Console.ReadLine());
+			byte choose = byte.Parse(Console.ReadLine());
+			byte totalThread = 4;
+
 			switch (choose)
 			{
 				case 1:
-					Facebook_Comment fb = new Facebook_Comment();
+					#region Case 1
+					Facebook_Si_Demand_Source_Post fb = new Facebook_Si_Demand_Source_Post();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
 
 					while (true)
 					{
-						await fb.Crawl();
+						try
+						{
+							await fb.Crawl(totalThread);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
 						await ContinueWith(TimeSpan.FromMinutes(5));
 					}
+				#endregion
 
 				case 2:
+					#region Case 2
 					Twitter tw = new Twitter();
-					while(true)
-					{
-						int totalTweet = await tw.CrawlData();
-						Console.WriteLine("Total tweet: ", totalTweet);
-
-						await ContinueWith(TimeSpan.FromHours(6));
-					}
-
-				case 3:
-					Tiktok_Si_Demand_Source tksmd = new Tiktok_Si_Demand_Source();
 					while (true)
 					{
-						await tksmd.Crawl(1);
+						try
+						{
+							int totalTweet = await tw.CrawlData();
+							Console.WriteLine("Total tweet: ", totalTweet);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
 						await ContinueWith(TimeSpan.FromHours(6));
 					}
+				#endregion
+
+				case 3:
+					#region Case 3
+					Tiktok_Si_Demand_Source tksmds = new Tiktok_Si_Demand_Source();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
+
+					while (true)
+					{
+						try
+						{
+							await tksmds.Crawl(totalThread);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
+						await ContinueWith(TimeSpan.FromHours(6));
+					}
+				#endregion
+
+				case 4:
+					#region Case 4
+					Tiktok_Si_Demand_Source_Post tksmdsp = new Tiktok_Si_Demand_Source_Post();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
+
+					while (true)
+					{
+						try
+						{
+							await tksmdsp.Crawl(totalThread);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
+						await ContinueWith(TimeSpan.FromMinutes(1));
+					}
+				#endregion
+
 				default:
 					break;
 			}

@@ -27,7 +27,7 @@ namespace SocialNetwork_New.Helper
 		{
 			try
 			{
-				if (String.IsNullOrEmpty(json))
+				if (string.IsNullOrEmpty(json))
 				{
 					return default;
 				}

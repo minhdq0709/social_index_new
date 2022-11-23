@@ -2,7 +2,7 @@
 
 namespace SocialNetwork_New.Model
 {
-	class Youtube_Detail_Video_Model
+	class Youtube_Detail_Video_Kafka_Model
 	{
 		public uint Id { set; get; }
 		public string VideoCode { get; set; }

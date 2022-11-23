@@ -10,7 +10,7 @@ namespace SocialNetwork_New.Helper
 	{
 		private static ProducerConfig _config = new ProducerConfig
 		{
-			BootstrapServers = Config_System.SERVER_LINK,
+			BootstrapServers = Config_System.SERVER_LINK_TEST,
 			ClientId = Dns.GetHostName(),
 			Partitioner = Partitioner.Random
 		};
