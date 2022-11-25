@@ -17,15 +17,6 @@ namespace SocialNetwork_New.Controller
 
 		public async Task Crawl(byte totalThread)
 		{
-			List<Task> listTask = new List<Task>();
-
-			#region Setup token
-			if (SetupToken(Config_System.TIKTOK_135_TOKEN) == 0)
-			{
-				return;
-			}
-			#endregion
-
 			#region Setup list post
 			int start = 0;
 			string pathFile = $"{GetInstancePathFolder()}/start.txt";
@@ -36,7 +27,7 @@ namespace SocialNetwork_New.Controller
 				start = int.Parse(text);
 			}
 
-			if (SetupListPost(0) == 0) // todo
+			if (SetupListPost(start) == 0)
 			{
 				start = 0;
 				File.WriteAllText(pathFile, $"{start}");
@@ -47,7 +38,15 @@ namespace SocialNetwork_New.Controller
 			File.WriteAllText(pathFile, $"{start + 200}");
 			#endregion
 
+			#region Setup token
+			if (SetupToken(Config_System.TIKTOK_135_TOKEN) == 0)
+			{
+				return;
+			}
+			#endregion
+
 			#region Crawl
+			List<Task> listTask = new List<Task>();
 			for (byte i = 1; i <= totalThread; ++i)
 			{
 				listTask.Add(Run(i));
@@ -87,6 +86,7 @@ namespace SocialNetwork_New.Controller
 			Kafka_Helper kf = new Kafka_Helper();
 			HttpClient_Helper client = new HttpClient_Helper();
 			string template = @"https://tiktok-all-in-one.p.rapidapi.com/video/comments?id={0}&offset={1}";
+			data.status = Config_System.DONE;
 
 			while (true)
 			{

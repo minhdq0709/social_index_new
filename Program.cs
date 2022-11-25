@@ -12,6 +12,8 @@ namespace SocialNetwork_New
 			Console.WriteLine("2: Get Tweet");
 			Console.WriteLine("3: Tiktok si demand source");
 			Console.WriteLine("4: Tiktok si demand source post");
+			Console.WriteLine("5: Youtube si demand source");
+			Console.WriteLine("6: Youtube si demand source post");
 
 			byte choose = byte.Parse(Console.ReadLine());
 			byte totalThread = 4;
@@ -27,6 +29,7 @@ namespace SocialNetwork_New
 
 					while (true)
 					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
 							await fb.Crawl(totalThread);
@@ -45,6 +48,7 @@ namespace SocialNetwork_New
 					Twitter tw = new Twitter();
 					while (true)
 					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
 							int totalTweet = await tw.CrawlData();
@@ -68,6 +72,7 @@ namespace SocialNetwork_New
 
 					while (true)
 					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
 							await tksmds.Crawl(totalThread);
@@ -77,7 +82,7 @@ namespace SocialNetwork_New
 							Console.WriteLine(ex.ToString());
 						}
 
-						await ContinueWith(TimeSpan.FromHours(6));
+						await ContinueWith(TimeSpan.FromMinutes(5));
 					}
 				#endregion
 
@@ -90,6 +95,7 @@ namespace SocialNetwork_New
 
 					while (true)
 					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
 							await tksmdsp.Crawl(totalThread);
@@ -99,13 +105,62 @@ namespace SocialNetwork_New
 							Console.WriteLine(ex.ToString());
 						}
 
-						await ContinueWith(TimeSpan.FromMinutes(1));
+						await ContinueWith(TimeSpan.FromMinutes(5));
+					}
+				#endregion
+
+				case 5:
+					#region Case 5
+					Youtube_Si_Demand_Source ytsdms = new Youtube_Si_Demand_Source();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
+
+					while (true)
+					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
+						try
+						{
+							await ytsdms.Crawl(totalThread);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
+						await ContinueWith(TimeSpan.FromMinutes(5));
+					}
+				#endregion
+
+				case 6:
+					#region Case 6
+					Youtube_Si_Demand_Source_Post ytsdmsp = new Youtube_Si_Demand_Source_Post();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
+
+					while (true)
+					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
+						try
+						{
+							await ytsdmsp.Crawl(totalThread);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
+						await ContinueWith(TimeSpan.FromMinutes(30));
 					}
 				#endregion
 
 				default:
+					Console.WriteLine("Chon ko hop le");
 					break;
 			}
+
+			Console.ReadLine();
 		}
 
 		private static async Task ContinueWith(TimeSpan delay)

@@ -86,3 +86,15 @@ D:\Pj_New\SocialNetwork_New\bin\Debug\CliWrap.xml
 D:\Pj_New\SocialNetwork_New\bin\Debug\System.Text.Encoding.CodePages.xml
 D:\Pj_New\SocialNetwork_New\bin\Debug\YoutubeExplode.xml
 D:\Pj_New\SocialNetwork_New\bin\Debug\YoutubeExplode.Converter.xml
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Auth.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Auth.PlatformServices.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Core.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.PlatformServices.dll
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.pdb
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.xml
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Auth.pdb
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Auth.xml
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Core.pdb
+D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Core.xml
+D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.csproj.AssemblyReference.cache

@@ -2,6 +2,7 @@
 using SocialNetwork_New.Model;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -14,32 +15,50 @@ namespace SocialNetwork_New.Controller
 
 		public async Task Crawl(byte thread)
 		{
-			List<Task> listTask = new List<Task>();
+			#region Setup list source
+			int start = 0;
+			string pathFile = $"{GetInstancePathFolder()}/start.txt";
+
+			if (File.Exists(pathFile))
+			{
+				string text = File.ReadAllText(pathFile);
+				start = int.Parse(text);
+			}
+
+			if (SetupListPost(start) == 0)
+			{
+				start = 0;
+				File.WriteAllText(pathFile, $"{start}");
+
+				return;
+			}
+
+			File.WriteAllText(pathFile, $"{start + 200}");
+			#endregion
+
+			#region Setup token
 			if (SetupToken(Config_System.TIKTOK_135_TOKEN) == 0)
 			{
 				return;
 			}
+			#endregion
 
-			int start = 0;
-
-			if (SetupListPost(start) == 0)
-			{
-				return;
-			}
-
+			#region Crawl
+			List<Task> listTask = new List<Task>();
 			for (byte i = 0; i < thread; ++i)
 			{
 				listTask.Add(Run(i));
 			}
 
 			await Task.WhenAll(listTask);
+			#endregion
 		}
 
 		private int SetupListPost(int start)
 		{
 			List<SiDemandSource_Model> listData = new List<SiDemandSource_Model>();
 
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				listData = mysql.SelectFromTableSiDemandSource(start, "tiktok")
 					.GroupBy(x => x.link)
@@ -66,7 +85,7 @@ namespace SocialNetwork_New.Controller
 
 			string json = await client.GetAsyncDataByRapidAsync(
 				string.Format(template, nameUser),
-				GetInstanceRoundRobin().Next().Token,
+				"e3cbda79fcmshe6fb5b60dc7c5c9p161a6bjsn613fd1eae0ee",
 				"tiktok-api6.p.rapidapi.com");
 
 			Tiktok_Rapid_API6_Model.Root listVideo = String_Helper.ToObject<Tiktok_Rapid_API6_Model.Root>(json);
@@ -84,6 +103,7 @@ namespace SocialNetwork_New.Controller
 					await kh.InsertPost(String_Helper.ToJson<Tiktok_Post_Kafka_Model>(dataSendKafka), Config_System.TOPIC_TIKTOK_POST);
 
 					mysql.InsertToTableSi_demand_source_post(dataSendKafka);
+					await Task.Delay(100);
 				}
 			}
 		}

@@ -20,15 +20,16 @@ namespace SocialNetwork_New.Controller
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
 			{
 				listToken = mysql.SelectTokenYT_Tiktok_Twitetr(Config_System.YOUTUBE_TOKEN);
-				if (listToken.Any())
-				{
-					if (_roundRobinList is null)
-					{
-						_roundRobinList = null;
-					}
+			}
 
-					_roundRobinList = new RoundRobinList<Token_Yt_Tiktok_TwitterModel>(listToken);
+			if (listToken.Any())
+			{
+				if (_roundRobinList != null)
+				{
+					_roundRobinList = null;
 				}
+
+				_roundRobinList = new RoundRobinList<Token_Yt_Tiktok_TwitterModel>(listToken);
 			}
 
 			return listToken.Count;
@@ -64,11 +65,12 @@ namespace SocialNetwork_New.Controller
 				Author = snp.authorDisplayName,
 				AuthorChannelId = snp.authorChannelId.value,
 				Photo = snp.authorProfileImageUrl,
+				ChannelId = snp.channelId,
 
 				VideoId = snp.videoId,
 				Content = snp.textOriginal,
 				Url = $@"https://www.youtube.com/watch?v={snp.videoId}",
-				Like = (uint)snp.likeCount,
+				Like = snp.likeCount,
 
 				CreateTime = snp.publishedAt,
 				UpdateTime = snp.updatedAt

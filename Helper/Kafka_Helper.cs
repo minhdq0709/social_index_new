@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace SocialNetwork_New.Helper
 	{
 		private static ProducerConfig _config = new ProducerConfig
 		{
-			BootstrapServers = Config_System.SERVER_LINK_TEST,
+			BootstrapServers = Config_System.SERVER_LINK,
 			ClientId = Dns.GetHostName(),
 			Partitioner = Partitioner.Random
 		};
@@ -25,11 +26,42 @@ namespace SocialNetwork_New.Helper
 			try
 			{
 				DeliveryResult<string, string> val = await producer.ProduceAsync(
-					topic, 
-					new Message<string, string> { Value = messagejson }
+					topic,
+					new Message<string, string> { 
+						Value = messagejson 
+					}
 				);
 
-				producer.Flush(TimeSpan.FromMilliseconds(100));
+				return true;
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/kafka.txt", ex.ToString() + "\n");
+			}
+
+			return false;
+		}
+
+		public async Task<bool> InsertPost<T>(IEnumerable<T> listMessage, string topic)
+		{
+			try
+			{
+				using (IProducer<string, string> producer = new ProducerBuilder<string, string>(_config)
+						.SetKeySerializer(Serializers.Utf8)
+						.SetValueSerializer(Serializers.Utf8)
+						.Build())
+				{
+					foreach(T item in listMessage)
+					{
+						DeliveryResult<string, string> val = await producer.ProduceAsync(
+							topic,
+							new Message<string, string> { 
+								Value = String_Helper.ToJson<T>(item) 
+							}
+						);
+					}
+				}
+
 				return true;
 			}
 			catch (Exception ex)

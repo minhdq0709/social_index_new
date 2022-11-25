@@ -17,12 +17,8 @@ namespace SocialNetwork_New.Controller
 
 		public async Task Crawl(byte totalThread)
 		{
-			List<Task> listTask = new List<Task>();
-			#region Setup token
-			if (SetupToken($"{Config_System.USER_LIVE}") == 0)
-			{
-				return;
-			}
+			#region Free memory
+			GetInstanceMapHistoryToken().Clear();
 			#endregion
 
 			#region Setup list post
@@ -46,8 +42,16 @@ namespace SocialNetwork_New.Controller
 			File.WriteAllText(pathFile, $"{start + 200}");
 			#endregion
 
+			#region Setup token
+			if (SetupToken($"{Config_System.USER_LIVE}") == 0)
+			{
+				return;
+			}
+			#endregion
+
 			#region Crawl
-			for(byte i = 1; i <= totalThread; ++i)
+			List<Task> listTask = new List<Task>();
+			for (byte i = 1; i <= totalThread; ++i)
 			{
 				listTask.Add(Run(i));
 			}
@@ -57,10 +61,6 @@ namespace SocialNetwork_New.Controller
 
 			#region Update to db - Send msg to kafka
 			await UpdateNumberUseToken(GetInstanceMapHistoryToken());
-			#endregion
-
-			#region Free memory
-			GetInstanceMapHistoryToken().Clear();
 			#endregion
 		}
 
@@ -133,22 +133,22 @@ namespace SocialNetwork_New.Controller
 						tempToken.StatusToken = Config_System.PAGE_INVALIDATE;
 					}
 
-					if (root.error.message.Contains("You cannot access the app till you log in"))
+					else if (root.error.message.Contains("You cannot access the app till you log in"))
 					{
 						tempToken.StatusToken = Config_System.USER_DIE;
 					}
 
-					if (root.error.message.Contains("Error validating access token:"))
+					else if(root.error.message.Contains("Error validating access token:"))
 					{
 						tempToken.StatusToken = Config_System.GET_TOKEN_BACK;
 					}
 
-					if (root.error.message.Equals("Error loading application"))
+					else if(root.error.message.Equals("Error loading application"))
 					{
 						tempToken.StatusToken = Config_System.GET_TOKEN_BACK;
 					}
 
-					if (root.error.message.Contains("Please reduce the amount"))
+					else if(root.error.message.Contains("Please reduce the amount"))
 					{
 						limit = 100;
 						continue;
@@ -212,14 +212,14 @@ namespace SocialNetwork_New.Controller
 				try
 				{
 					await GetComment(infoPost);
-
-					using(My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
-					{
-						infoPost.status = Config_System.DONE;
-						mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(infoPost);
-					}
 				}
 				catch (Exception) { }
+
+				using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+				{
+					infoPost.status = Config_System.DONE;
+					mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(infoPost);
+				}
 
 				await Task.Delay(indexThread * 1_000);
 			}

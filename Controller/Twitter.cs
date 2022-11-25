@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -34,7 +32,8 @@ namespace SocialNetwork_New.Controller
 		{
 			int totalTweet = 0;
 			byte count = (byte)_idUser.Count();
-
+			Telegram_Helper th = new Telegram_Helper(Config_System.KEY_BOT_TIKTOK);
+			
 			if (SetupToken(Config_System.TWITTER_TOKEN) == 0)
 			{
 				return totalTweet;
@@ -46,41 +45,22 @@ namespace SocialNetwork_New.Controller
 				await Task.Delay(40_000);
 			}
 
+			await th.SendMessageToChannel($"Twitter: {totalTweet} tweet, time end: {DateTime.Now}", Config_System.ID_GROUP_COMMENT_YT);
 			return totalTweet;
 		}
-		private async ValueTask<int> GetDatailTweet(byte indexItem, int timeout = 60)
+
+		private async ValueTask<int> GetDatailTweet(byte indexItem)
 		{
 			int totalTweet = 0;
-			HttpClient client = new HttpClient();
 			Kafka_Helper kf = new Kafka_Helper();
-			string jsonBody = "";
+			HttpClient_Helper client = new HttpClient_Helper();
 
-			using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
-			{
-				using (HttpRequestMessage request = new HttpRequestMessage
-				{
-					Method = HttpMethod.Get,
-					RequestUri = new Uri("https://twitter135.p.rapidapi.com/UserTweets/?count=100&id=" + _idUser[indexItem]),
-					Headers = {
-						{ "X-RapidAPI-Host", "twitter135.p.rapidapi.com" },
-						{ "X-RapidAPI-Key", _roundRobinList.Next().Token}
-					}
-				})
-				{
-					try
-					{
-						using (HttpResponseMessage response = await client.SendAsync(request, cancellationTokenSource.Token))
-						{
-							response.EnsureSuccessStatusCode();
-							jsonBody = await response.Content.ReadAsStringAsync();
-						}
-					}
-					catch (HttpRequestException ex)
-					{
-						Console.WriteLine(ex.ToString());
-					}
-				}
-			}
+			string jsonBody = await client.GetAsyncDataByRapidAsync(
+				$@"https://twitter135.p.rapidapi.com/UserTweets/?count=100&id={_idUser[indexItem]}",
+				_roundRobinList.Next().Token,
+				"twitter135.p.rapidapi.com",
+				false
+			);
 
 			if (!string.IsNullOrEmpty(jsonBody))
 			{

@@ -113,19 +113,19 @@ namespace SocialNetwork_New.Helper
 							metaData.Add(new SiDemandSourcePost_Model
 							{
 								id = Convert.ToInt32(row["id"].ToString()),
-								si_demand_source_id = Convert.ToInt32(row["si_demand_source_id"].ToString()),
+								//si_demand_source_id = Convert.ToInt32(row["si_demand_source_id"].ToString()),
 								post_id = row["post_id"].ToString(),
 								link = row["link"].ToString(),
 								create_time = Convert.ToDateTime(row["create_time"].ToString()),
 								update_time = Convert.ToDateTime(row["update_time"].ToString()),
-								status = Convert.ToInt32(row["status"].ToString()),
+								//status = Convert.ToInt32(row["status"].ToString()),
 								title = row["title"].ToString(),
 								content = row["content"].ToString(),
-								total_comment = Convert.ToInt32(row["total_comment"].ToString()),
-								total_like = Convert.ToInt32(row["total_like"].ToString()),
-								total_share = Convert.ToInt32(row["total_share"].ToString()),
+								//total_comment = Convert.ToInt32(row["total_comment"].ToString()),
+								//total_like = Convert.ToInt32(row["total_like"].ToString()),
+								//total_share = Convert.ToInt32(row["total_share"].ToString()),
 								user_crawler = row["user_crawler"].ToString(),
-								lock_tmp = Convert.ToInt32(row["lock_tmp"].ToString())
+								//lock_tmp = Convert.ToInt32(row["lock_tmp"].ToString())
 							});
 						}
 						catch (Exception) { }
@@ -309,14 +309,14 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
-		public uint InsertToTableSi_demand_source_post(Tiktok_Post_Kafka_Model data)
+		public int InsertToTableSi_demand_source_post(Tiktok_Post_Kafka_Model data)
 		{
 			try
 			{
 				_conn.Open();
 
-				string query = "Insert into social_index_v2.si_demand_source_post(post_id, platform, link, create_time, update_time) " +
-					"values(@post_id, @platform, @link, @create_time, @update_time);";
+				string query = "Insert into social_index_v2.si_demand_source_post(post_id, platform, link, create_time, update_time, status) " +
+					"values(@post_id, @platform, @link, @create_time, @update_time, @status);";
 
 				MySqlCommand cmd = new MySqlCommand();
 				cmd.Connection = _conn;
@@ -327,8 +327,46 @@ namespace SocialNetwork_New.Helper
 				cmd.Parameters.Add("@link", MySqlDbType.VarChar).Value = data.LinkVideo;
 				cmd.Parameters.Add("@create_time", MySqlDbType.Timestamp).Value = data.TimeCreated;
 				cmd.Parameters.Add("@update_time", MySqlDbType.Timestamp).Value = data.TimeCreated;
+				cmd.Parameters.Add("@status", MySqlDbType.Int32).Value = Config_System.NEW_DATA;
 
-				uint row = (uint)cmd.ExecuteNonQuery();
+				int row = cmd.ExecuteNonQuery();
+				_conn.Close();
+
+				return row;
+			}
+			catch (Exception ex)
+			{
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/InsertToTableFb_Token_History.txt", ex.ToString() + "\n");
+				return 0;
+			}
+		}
+
+		public int InsertToTableSi_demand_source_post(Youtube_Detail_Video_Kafka_Model data)
+		{
+			try
+			{
+				_conn.Open();
+
+				string query = "Insert into social_index_v2.si_demand_source_post(post_id, platform, link, create_time, update_time, status) " +
+					"values(@post_id, @platform, @link, @create_time, @update_time, @status);";
+
+				MySqlCommand cmd = new MySqlCommand();
+				cmd.Connection = _conn;
+				cmd.CommandText = query;
+
+				cmd.Parameters.Add("@post_id", MySqlDbType.VarChar).Value = data.VideoCode;
+				cmd.Parameters.Add("@platform", MySqlDbType.VarChar).Value = "youtube";
+				cmd.Parameters.Add("@link", MySqlDbType.VarChar).Value = data.Url;
+				cmd.Parameters.Add("@create_time", MySqlDbType.Timestamp).Value = data.CreateTime;
+				cmd.Parameters.Add("@update_time", MySqlDbType.Timestamp).Value = data.CreateTime;
+				cmd.Parameters.Add("@status", MySqlDbType.Int32).Value = Config_System.NEW_DATA;
+
+				int row = cmd.ExecuteNonQuery();
 				_conn.Close();
 
 				return row;
@@ -443,6 +481,37 @@ namespace SocialNetwork_New.Helper
 			cmd.Parameters.AddWithValue("@update_time", DateTime.Now);
 			cmd.Parameters.AddWithValue("@status", data.status);
 			cmd.Parameters.AddWithValue("@user_crawler", "Minhdq");
+			cmd.Parameters.AddWithValue("@Id", data.id);
+
+			try
+			{
+				cmd.ExecuteNonQuery();
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateStatusTokenByUser.txt", ex.ToString() + "\n" + query + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+			}
+		}
+
+		public void UpdateTimeAndStatusAndFrequencyCrawlStatutToTableSiDemandSource(SiDemandSource_Model data)
+		{
+			_conn.Open();
+
+			string query = $"UPDATE social_index_v2.si_demand_source SET update_time = @update_time, status = @status, frequency_crawl_status_current_date = @frequency_crawl_status_current_date where Id = @Id;";
+
+			MySqlCommand cmd = new MySqlCommand();
+
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			cmd.Parameters.AddWithValue("@update_time", data.update_time);
+			cmd.Parameters.AddWithValue("@status", data.status);
+			cmd.Parameters.AddWithValue("@frequency_crawl_status_current_date", "done");
 			cmd.Parameters.AddWithValue("@Id", data.id);
 
 			try

@@ -24,12 +24,16 @@ namespace SocialNetwork_New.Helper
 
             try
             {
-                var parseMode = ParseMode.Html;
-                await BotClient.SendTextMessageAsync(groupOrChannelId, message, parseMode, disableWebPagePreview: !isWebPreview).ConfigureAwait(false);
+                ParseMode parseMode = ParseMode.Html;
+                await BotClient.SendTextMessageAsync(
+                    groupOrChannelId, 
+                    message, 
+                    parseMode, 
+                    disableWebPagePreview: !isWebPreview).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                File.AppendAllText($"{Environment.CurrentDirectory}/Check/error.txt", ex.ToString());
+                File.AppendAllText($"{Environment.CurrentDirectory}/Check/telegram.txt", ex.ToString());
             }
         }
 

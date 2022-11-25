@@ -7,6 +7,8 @@
 		public static readonly string TOPIC_FB_CAMPAIGN = "fb-campaign-crawler";
 		public static readonly string TOPIC_TWITTER = "datacollection-twitter-crawler";
 		public static readonly string TOPIC_FB_GROUP_COMMENT = "fb-group-cmt-crawler";
+		public static readonly string TOPIC_COMMENT_YT = "datacollection-youtubecomment-crawler";
+		public static readonly string TOPIC_VIDEO_YT = "datacollection-youtube-crawler";
 		public static readonly string TEST = "crawler-fb-group-cmt";
 
 		public static readonly string SERVER_LINK = "10.3.48.81:9092,10.3.48.90:9092,10.3.48.91:9092";
@@ -32,6 +34,9 @@
 		public static readonly string KEY_BOT = "5119893484:AAGZbx3izF7B8ywoDmc5gIaAwYRw26doAQ4";
 		public static readonly string KEY_BOT_TIKTOK = "5506812278:AAFndGcZgcLwXxxnRwTpKaONdpO7iWv4x6c";
 		public static readonly string KEY_ALERT_ACCOUNT_FB_DIE = "5151385536:AAGlVfEU0OqsP3KEQqN_BaSDyj1zyQAHxfU";
+		public static readonly string KEY_BOT_YT_COMMENT = "5120269846:AAHzey5xX8ucf4MDe4q5o45m_0gKeaC-8_0";
+		public static readonly string KEY_BOT_YT_CHANNEL = "5582300519:AAF1hBFefpLrYWDYjBsx4N9YUXRFscPApHc";
+		public static readonly long ID_GROUP_COMMENT_YT = 966893697;
 
 		/* Type token */
 		public static readonly byte YOUTUBE_TOKEN = 1;

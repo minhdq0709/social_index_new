@@ -21,7 +21,7 @@ namespace SocialNetwork_New.Controller
 				listToken = mysql.SelectTokenYT_Tiktok_Twitetr(Config_System.TIKTOK_135_TOKEN);
 				if (listToken.Any())
 				{
-					if (_roundRobinList is null)
+					if (_roundRobinList != null)
 					{
 						_roundRobinList = null;
 					}
