@@ -244,6 +244,54 @@ namespace SocialNetwork_New.Helper
 			return metaData;
 		}
 
+		public List<AccessTokenFacebook> SelectTokenNotActiveByManager(string statusToken)
+		{
+			_conn.Open();
+
+			string query = $"Select Manager, User, StatusToken, min(Datetime_tokendie) as Datetime_tokendie from FacebookDb.fb_tokens where StatusToken in ({statusToken}) group by Manager, User, StatusToken order by Manager;";
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			List<AccessTokenFacebook> metaData = new List<AccessTokenFacebook>();
+			try
+			{
+				MySqlDataReader row = cmd.ExecuteReader();
+
+				if (row.HasRows)
+				{
+					while (row.Read())
+					{
+						try
+						{
+							AccessTokenFacebook data = new AccessTokenFacebook();
+							data.StatusToken = Int32.Parse(row["StatusToken"].ToString());
+							data.Manager = row["Manager"].ToString();
+							data.User = String_Helper.RemoveSpecialCharacter(row["User"].ToString());
+							data.Datetime_tokendie = string.IsNullOrEmpty(row["Datetime_tokendie"].ToString()) ? DateTime.Now : DateTime.Parse(row["Datetime_tokendie"].ToString());
+
+							metaData.Add(data);
+						}
+						catch (Exception ex)
+						{
+							File.AppendAllText($"{Environment.CurrentDirectory}/Check/SelectTokenNotActiveByManager.txt", ex.ToString() + "\n" + query + "\n");
+						}
+					}
+				}
+
+				_conn.Close();
+			}
+			catch (Exception)
+			{
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+			}
+
+			return metaData;
+		}
+
 		public void UpdateNumberUseToken(AccessTokenFacebook data)
 		{
 			_conn.Open();
@@ -443,21 +491,22 @@ namespace SocialNetwork_New.Helper
 							data.Id = Int32.Parse(row["Id"].ToString());
 							data.Token = row["Token"].ToString();
 							data.Status_ = Int32.Parse(row["Status_"].ToString());
-							data.Number_Of_Uesd_To_Token = Int32.Parse(row["Status_"].ToString());
+							data.Number_Of_Uesd_To_Token = Int32.Parse(row["Number_Of_Uesd_To_Token"].ToString());
 
 							metaData.Add(data);
 						}
-						catch (Exception)
+						catch (Exception ex)
 						{
-							Console.WriteLine();
+							Console.WriteLine(ex.ToString());
 						}
 					}
 				}
 
 				_conn.Close();
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				Console.WriteLine(ex.ToString());
 				if (_conn != null)
 				{
 					_conn.Close();
@@ -522,6 +571,31 @@ namespace SocialNetwork_New.Helper
 			catch (Exception ex)
 			{
 				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateStatusTokenByUser.txt", ex.ToString() + "\n" + query + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+			}
+		}
+
+		public void UpdateTimeCountTokenDaily()
+		{
+			_conn.Open();
+
+			string query = $"UPDATE FacebookDb.fb_tokens SET Timecount_token = 0, Timecount_tokendie = 0 where StatusToken in ({Config_System.USER_LIVE}, {Config_System.USER_DIE}, {Config_System.GET_TOKEN_BACK});";
+
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			try
+			{
+				cmd.ExecuteNonQuery();
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateTimeCountTokenDaily.txt", ex.ToString() + "\n" + query + "\n");
 				if (_conn != null)
 				{
 					_conn.Close();

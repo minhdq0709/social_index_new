@@ -171,6 +171,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controller\Alert_Account_Fb_Die.cs" />
     <Compile Include="Controller\Facebook_Base.cs" />
     <Compile Include="Controller\Facebook_Si_Demand_Source_Post.cs" />
     <Compile Include="Controller\Tiktok_Base.cs" />
@@ -182,12 +183,15 @@
     <Compile Include="Controller\Youtube_Si_Demand_Source_Post.cs" />
     <Compile Include="Helper\Config_System.cs" />
     <Compile Include="Helper\Date_Helper.cs" />
+    <Compile Include="Helper\Enum_Env_Helper.cs" />
     <Compile Include="Helper\HttpClient_Helper.cs" />
     <Compile Include="Helper\Kafka_Helper.cs" />
     <Compile Include="Helper\MyTube_Helper.cs" />
     <Compile Include="Helper\My_SQL_Helper.cs" />
     <Compile Include="Helper\String_Helper.cs" />
     <Compile Include="Helper\Telegram_Helper.cs" />
+    <Compile Include="Job\Alert_Account_Fb_Die_Job.cs" />
+    <Compile Include="Job\UpdateTimeCountDailyJob.cs" />
     <Compile Include="Model\AccessTokenFacebook.cs" />
     <Compile Include="Model\FacebookModel.cs" />
     <Compile Include="Model\Facebook_Post_Base_Model.cs" />
@@ -206,15 +210,13 @@
     <Compile Include="Model\Youtube_Model.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Schedule\Scheduler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Job\" />
-    <Folder Include="Schedule\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

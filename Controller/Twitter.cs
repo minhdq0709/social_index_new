@@ -33,7 +33,7 @@ namespace SocialNetwork_New.Controller
 			int totalTweet = 0;
 			byte count = (byte)_idUser.Count();
 			Telegram_Helper th = new Telegram_Helper(Config_System.KEY_BOT_TIKTOK);
-			
+
 			if (SetupToken(Config_System.TWITTER_TOKEN) == 0)
 			{
 				return totalTweet;
@@ -126,7 +126,7 @@ namespace SocialNetwork_New.Controller
 		private int SetupToken(byte type)
 		{
 			List<Token_Yt_Tiktok_TwitterModel> listToken = new List<Token_Yt_Tiktok_TwitterModel>();
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_2_207))
 			{
 				listToken = mysql.SelectTokenYT_Tiktok_Twitetr(type);
 			}
@@ -137,7 +137,6 @@ namespace SocialNetwork_New.Controller
 			}
 
 			_roundRobinList = new RoundRobinList<Token_Yt_Tiktok_TwitterModel>(listToken);
-
 			return listToken.Count;
 		}
 	}

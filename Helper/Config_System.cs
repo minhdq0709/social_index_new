@@ -16,6 +16,7 @@
 		
 		public static readonly int USER_DIE = 100;
 		public static readonly int GET_TOKEN_BACK = 101;
+		public static readonly int USER_DIED_FOREVER = 102;
 		public static readonly int PAGE_INVALIDATE = 105;
 		public static readonly int USER_LIVE = 1;
 
@@ -23,12 +24,14 @@
 		public static readonly string PROXY_RANDOM_IP = "http://10.5.3.24:6210";
 
 		/* Server */
-		//public static readonly string DB_SOCIAL_INDEX_V2_51_79 = "Server=192.168.23.22;User ID=social_index_v2;Password=kSPQ6INMge4p3VFn1bCX;charset=utf8;PORT=3306";
-		//public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=Campain_PostLinks_Facebook_Db;Password=UgPTNbOSDtCfj0zdmGyH;charset=utf8;PORT=3306";
+		public static readonly string DB_SOCIAL_INDEX_V2_51_79 = "Server=192.168.23.22;User ID=social_index_v2;Password=kSPQ6INMge4p3VFn1bCX;charset=utf8;PORT=3306";
+		public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=Campain_PostLinks_Facebook_Db;Password=UgPTNbOSDtCfj0zdmGyH;charset=utf8;PORT=3306";
+		public static readonly string DB_SOCIAL_INDEX_V2_2_207 = "Server=192.168.23.22;User ID=social_index_v2_2_207;Password=h5T8jPiwF72kQfPenka7;charset=utf8;PORT=3306";
+		public static readonly string DB_FB_2_207 = "Server=192.168.23.22;User ID=FacebookDb_2_207;Password=h5T8jPiwF72kQfPenka7;charset=utf8;PORT=3306";
 
 		/* Local */
-		public static readonly string DB_SOCIAL_INDEX_V2_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
-		public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
+		//public static readonly string DB_SOCIAL_INDEX_V2_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
+		//public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
 
 		/* Telegram */
 		public static readonly string KEY_BOT = "5119893484:AAGZbx3izF7B8ywoDmc5gIaAwYRw26doAQ4";
@@ -37,6 +40,7 @@
 		public static readonly string KEY_BOT_YT_COMMENT = "5120269846:AAHzey5xX8ucf4MDe4q5o45m_0gKeaC-8_0";
 		public static readonly string KEY_BOT_YT_CHANNEL = "5582300519:AAF1hBFefpLrYWDYjBsx4N9YUXRFscPApHc";
 		public static readonly long ID_GROUP_COMMENT_YT = 966893697;
+		public static readonly long ID_GROUP_CRAWL_DATA_CHECK_LIVE_ACC = -783988807;
 
 		/* Type token */
 		public static readonly byte YOUTUBE_TOKEN = 1;

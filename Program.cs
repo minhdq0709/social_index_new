@@ -1,4 +1,5 @@
 ﻿using SocialNetwork_New.Controller;
+using SocialNetwork_New.Schedule;
 using System;
 using System.Threading.Tasks;
 
@@ -14,9 +15,12 @@ namespace SocialNetwork_New
 			Console.WriteLine("4: Tiktok si demand source post");
 			Console.WriteLine("5: Youtube si demand source");
 			Console.WriteLine("6: Youtube si demand source post");
+			Console.WriteLine("7: Alert account fb died");
+			Console.WriteLine("8: Update time count daily");
 
 			byte choose = byte.Parse(Console.ReadLine());
 			byte totalThread = 4;
+			Scheduler sc = new Scheduler();
 
 			switch (choose)
 			{
@@ -52,7 +56,7 @@ namespace SocialNetwork_New
 						try
 						{
 							int totalTweet = await tw.CrawlData();
-							Console.WriteLine("Total tweet: ", totalTweet);
+							Console.WriteLine($"Total tweet: {totalTweet}");
 						}
 						catch (Exception ex)
 						{
@@ -153,6 +157,34 @@ namespace SocialNetwork_New
 
 						await ContinueWith(TimeSpan.FromMinutes(30));
 					}
+				#endregion
+
+				case 7:
+					#region Case 7
+					if (!await sc.CheckScheduleStartAsync())
+					{
+						await sc.StartAsync(Helper.Enum_Env_Helper.SCHEDULE.ALERT_TO_ACC_DIE, -1, 00);
+					}
+					else
+					{
+						await sc.StopAsync();
+					}
+
+					break;
+				#endregion
+
+				case 8:
+					#region Case 8
+					if (!await sc.CheckScheduleStartAsync())
+					{
+						await sc.StartAsync(Helper.Enum_Env_Helper.SCHEDULE.UPDATE_TIME_COUNT_TOKEN, 00, 01);
+					}
+					else
+					{
+						await sc.StopAsync();
+					}
+
+					break;
 				#endregion
 
 				default:

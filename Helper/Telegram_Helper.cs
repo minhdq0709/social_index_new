@@ -33,7 +33,7 @@ namespace SocialNetwork_New.Helper
             }
             catch (Exception ex)
             {
-                File.AppendAllText($"{Environment.CurrentDirectory}/Check/telegram.txt", ex.ToString());
+                File.AppendAllText($"{Environment.CurrentDirectory}/Check/SendMessageToChannel.txt", ex.ToString());
             }
         }
 
