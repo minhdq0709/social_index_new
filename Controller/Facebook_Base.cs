@@ -17,7 +17,7 @@ namespace SocialNetwork_New.Controller
 		public int SetupToken(string statusToken)
 		{
 			List<AccessTokenFacebook> listToken = new List<AccessTokenFacebook>();
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_2_207))
 			{
 				listToken.AddRange(mysql.SelectToken(statusToken).OrderBy(x => x.Timecount_token));
 			}
@@ -55,7 +55,7 @@ namespace SocialNetwork_New.Controller
 
 		public async Task UpdateNumberUseToken(IDictionary<int, AccessTokenFacebook> data)
 		{
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_2_207))
 			{
 				List<AccessTokenFacebook> tokenOld = mysql.SelectToken($"{Config_System.USER_LIVE}");
 
@@ -118,7 +118,7 @@ namespace SocialNetwork_New.Controller
 		{
 			List<Facebook_Post_Base_Model> listData = new List<Facebook_Post_Base_Model>();
 
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_2_207))
 			{
 				listData = mysql.SelectFieldBaseFromTableSiDemandSourcePost(start, platform).OfType<Facebook_Post_Base_Model>().ToList();
 			}

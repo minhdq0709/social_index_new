@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -17,10 +16,6 @@ namespace SocialNetwork_New.Controller
 
 		public async Task Crawl(byte totalThread)
 		{
-			#region Free memory
-			GetInstanceMapHistoryToken().Clear();
-			#endregion
-
 			#region Setup list post
 			string pathFile = $"{GetInstancePathFolder()}/start.txt";
 			int start = 0;
@@ -59,9 +54,14 @@ namespace SocialNetwork_New.Controller
 			await Task.WhenAll(listTask); //t2, t3, t4, t5, t6
 			#endregion
 
-			#region Update to db - Send msg to kafka
+			#region Update to db
 			await UpdateNumberUseToken(GetInstanceMapHistoryToken());
 			#endregion
+
+			#region Free memory
+			GetInstanceMapHistoryToken().Clear();
+			#endregion
+
 		}
 
 		private int SetupPostToQueue(int start)
@@ -138,17 +138,17 @@ namespace SocialNetwork_New.Controller
 						tempToken.StatusToken = Config_System.USER_DIE;
 					}
 
-					else if(root.error.message.Contains("Error validating access token:"))
+					else if (root.error.message.Contains("Error validating access token:"))
 					{
 						tempToken.StatusToken = Config_System.GET_TOKEN_BACK;
 					}
 
-					else if(root.error.message.Equals("Error loading application"))
+					else if (root.error.message.Equals("Error loading application"))
 					{
 						tempToken.StatusToken = Config_System.GET_TOKEN_BACK;
 					}
 
-					else if(root.error.message.Contains("Please reduce the amount"))
+					else if (root.error.message.Contains("Please reduce the amount"))
 					{
 						limit = 100;
 						continue;
@@ -170,6 +170,8 @@ namespace SocialNetwork_New.Controller
 					break;
 				}
 
+				List<FB_CommentModel> listCmt = new List<FB_CommentModel>();
+
 				foreach (Datum2 item in root.data)
 				{
 					if (!string.IsNullOrEmpty(item.message))
@@ -177,9 +179,13 @@ namespace SocialNetwork_New.Controller
 						item.post_id = data.post_id;
 
 						++totalComment;
-						string jsonObj = JsonSerializer.Serialize<FB_CommentModel>(SetvalueComment(item), String_Helper.opt);
-						await kh.InsertPost(jsonObj, Config_System.TEST);
+						listCmt.Add(SetvalueComment(item));
 					}
+				}
+
+				if (listCmt.Any())
+				{
+					await kh.InsertPost<FB_CommentModel>(listCmt, Config_System.TEST);
 				}
 				#endregion
 
@@ -215,7 +221,7 @@ namespace SocialNetwork_New.Controller
 				}
 				catch (Exception) { }
 
-				using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+				using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_2_207))
 				{
 					infoPost.status = Config_System.DONE;
 					mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(infoPost);

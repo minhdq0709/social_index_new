@@ -146,7 +146,7 @@ namespace SocialNetwork_New.Helper
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' and status in ({Config_System.NEW_DATA}, {Config_System.ERROR}) limit {start}, 200;";
+			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' and status in (0, -1) limit {start}, 200;";
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
@@ -172,15 +172,16 @@ namespace SocialNetwork_New.Helper
 						}
 						catch (Exception ex)
 						{
-							File.AppendAllText($"{Environment.CurrentDirectory}/Check/SelectFieldBaseFromTableSiDemandSourcePost.txt", ex.ToString() + "\n" + query + "\n");
+							Console.WriteLine(ex.ToString());
 						}
 					}
 				}
 
 				_conn.Close();
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				Console.WriteLine(ex.ToString());
 				_conn.Close();
 			}
 

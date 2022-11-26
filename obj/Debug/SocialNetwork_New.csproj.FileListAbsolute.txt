@@ -97,4 +97,3 @@ D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Auth.pdb
 D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Auth.xml
 D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Core.pdb
 D:\Pj_New\SocialNetwork_New\bin\Debug\Google.Apis.Core.xml
-D:\Pj_New\SocialNetwork_New\obj\Debug\SocialNetwork_New.csproj.AssemblyReference.cache

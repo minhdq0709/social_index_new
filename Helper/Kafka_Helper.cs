@@ -44,9 +44,16 @@ namespace SocialNetwork_New.Helper
 
 		public async Task<bool> InsertPost<T>(IEnumerable<T> listMessage, string topic)
 		{
+			ProducerConfig config = new ProducerConfig
+			{
+				BootstrapServers = Config_System.SERVER_LINK_TEST,
+				ClientId = Dns.GetHostName(),
+				Partitioner = Partitioner.Random
+			};
+
 			try
 			{
-				using (IProducer<string, string> producer = new ProducerBuilder<string, string>(_config)
+				using (IProducer<string, string> producer = new ProducerBuilder<string, string>(config)
 						.SetKeySerializer(Serializers.Utf8)
 						.SetValueSerializer(Serializers.Utf8)
 						.Build())
