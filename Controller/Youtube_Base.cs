@@ -17,7 +17,7 @@ namespace SocialNetwork_New.Controller
 		{
 			List<Token_Yt_Tiktok_TwitterModel> listToken = new List<Token_Yt_Tiktok_TwitterModel>();
 
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
 			{
 				listToken = mysql.SelectTokenYT_Tiktok_Twitetr(Config_System.YOUTUBE_TOKEN);
 			}

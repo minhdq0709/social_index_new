@@ -61,7 +61,6 @@ namespace SocialNetwork_New.Controller
 			#region Free memory
 			GetInstanceMapHistoryToken().Clear();
 			#endregion
-
 		}
 
 		private int SetupPostToQueue(int start)
@@ -81,8 +80,8 @@ namespace SocialNetwork_New.Controller
 			string afterToken = "";
 			ushort limit = 1000;
 			double since = Date_Helper.ConvertDateTimeToTimeStamp(data.update_time);
-			Kafka_Helper kh = new Kafka_Helper();
-			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79);
+			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK_TEST);
+			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79);
 			int totalComment = 0;
 			byte loop = 1;
 			HttpClient_Helper client = new HttpClient_Helper();
@@ -176,16 +175,13 @@ namespace SocialNetwork_New.Controller
 				{
 					if (!string.IsNullOrEmpty(item.message))
 					{
-						item.post_id = data.post_id;
+						await kh.InsertPost(
+							String_Helper.ToJson<FB_CommentModel>(SetValueComment(item, data.post_id)),
+							Config_System.TOPIC_FB_GROUP_COMMENT
+						);
 
 						++totalComment;
-						listCmt.Add(SetvalueComment(item));
 					}
-				}
-
-				if (listCmt.Any())
-				{
-					await kh.InsertPost<FB_CommentModel>(listCmt, Config_System.TEST);
 				}
 				#endregion
 
@@ -203,6 +199,7 @@ namespace SocialNetwork_New.Controller
 				++loop;
 			}
 
+			kh.Dispose();
 			data.total_comment = totalComment;
 			data.total_share = loop;
 
@@ -221,7 +218,7 @@ namespace SocialNetwork_New.Controller
 				}
 				catch (Exception) { }
 
-				using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_2_207))
+				using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 				{
 					infoPost.status = Config_System.DONE;
 					mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(infoPost);

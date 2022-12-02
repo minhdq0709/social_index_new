@@ -13,24 +13,28 @@ namespace SocialNetwork_New.Controller
 {
 	class Twitter
 	{
-		public RoundRobinList<Token_Yt_Tiktok_TwitterModel> _roundRobinList;
-		private static readonly string[] _nameUser = {
+		public RoundRobin_Helper<Token_Yt_Tiktok_TwitterModel> _roundRobinList;
+		private readonly string[] _nameUser = {
 			"YouTube", "TheEllenShow", "TEDTalks", "taylorswift13", "shawnmendes",
 			"rihanna", "nytimes", "neymarjr", "NASA", "narendramodi",
 			"ladygaga", "KimKardashian", "katyperry", "jtimberlake", "jimmyfallon",
 			"elonmusk", "CNN", "britneyspears", "BillGates", "BBCBreaking"
 		};
-
-		private static readonly string[] _idUser = {
+		private readonly string[] _idUser = {
 			"10228272", "15846407", "15492359", "17919972", "379408088",
 			"79293791", "807095", "158487331", "11348282", "18839785",
 			"14230524", "25365536", "21447363", "26565946", "15485441",
 			"44196397", "759251", "16409683", "50393960", "5402612"
 		};
 
-		public async Task<int> CrawlData()
+		public Twitter()
 		{
-			int totalTweet = 0;
+			_roundRobinList = new RoundRobin_Helper<Token_Yt_Tiktok_TwitterModel>();
+		}
+
+		public async Task<ushort> CrawlData()
+		{
+			ushort totalTweet = 0;
 			byte count = (byte)_idUser.Count();
 			Telegram_Helper th = new Telegram_Helper(Config_System.KEY_BOT_TIKTOK);
 
@@ -49,10 +53,10 @@ namespace SocialNetwork_New.Controller
 			return totalTweet;
 		}
 
-		private async ValueTask<int> GetDatailTweet(byte indexItem)
+		private async ValueTask<ushort> GetDatailTweet(byte indexItem)
 		{
-			int totalTweet = 0;
-			Kafka_Helper kf = new Kafka_Helper();
+			ushort totalTweet = 0;
+			Kafka_Helper kf = new Kafka_Helper(Config_System.SERVER_LINK);
 			HttpClient_Helper client = new HttpClient_Helper();
 
 			string jsonBody = await client.GetAsyncDataByRapidAsync(
@@ -107,6 +111,8 @@ namespace SocialNetwork_New.Controller
 				}
 			}
 
+			kf.Dispose();
+
 			return totalTweet;
 		}
 
@@ -126,17 +132,12 @@ namespace SocialNetwork_New.Controller
 		private int SetupToken(byte type)
 		{
 			List<Token_Yt_Tiktok_TwitterModel> listToken = new List<Token_Yt_Tiktok_TwitterModel>();
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_2_207))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
 			{
 				listToken = mysql.SelectTokenYT_Tiktok_Twitetr(type);
 			}
 
-			if (_roundRobinList != null)
-			{
-				_roundRobinList = null;
-			}
-
-			_roundRobinList = new RoundRobinList<Token_Yt_Tiktok_TwitterModel>(listToken);
+			_roundRobinList.SetUp(listToken);
 			return listToken.Count;
 		}
 	}

@@ -16,7 +16,8 @@ namespace SocialNetwork_New
 			Console.WriteLine("5: Youtube si demand source");
 			Console.WriteLine("6: Youtube si demand source post");
 			Console.WriteLine("7: Alert account fb died");
-			Console.WriteLine("8: Update time count daily");
+			Console.WriteLine("8: Update time count fb token daily");
+			Console.WriteLine("9: Si fb crawl comment");
 
 			byte choose = byte.Parse(Console.ReadLine());
 			byte totalThread = 4;
@@ -55,7 +56,7 @@ namespace SocialNetwork_New
 						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
-							int totalTweet = await tw.CrawlData();
+							ushort totalTweet = await tw.CrawlData();
 							Console.WriteLine($"Total tweet: {totalTweet}");
 						}
 						catch (Exception ex)
@@ -161,13 +162,20 @@ namespace SocialNetwork_New
 
 				case 7:
 					#region Case 7
-					if (!await sc.CheckScheduleStartAsync())
+					try
 					{
-						await sc.StartAsync(Helper.Enum_Env_Helper.SCHEDULE.ALERT_TO_ACC_DIE, -1, 00);
+						if (!await sc.CheckScheduleStartAsync())
+						{
+							await sc.StartAsync(Helper.Enum_Env_Helper.SCHEDULE.ALERT_TO_ACC_DIE, -1, 00);
+						}
+						else
+						{
+							await sc.StopAsync();
+						}
 					}
-					else
+					catch(Exception ex)
 					{
-						await sc.StopAsync();
+						Console.WriteLine(ex.ToString());
 					}
 
 					break;
@@ -175,16 +183,48 @@ namespace SocialNetwork_New
 
 				case 8:
 					#region Case 8
-					if (!await sc.CheckScheduleStartAsync())
+					try
 					{
-						await sc.StartAsync(Helper.Enum_Env_Helper.SCHEDULE.UPDATE_TIME_COUNT_TOKEN, 00, 01);
+						if (!await sc.CheckScheduleStartAsync())
+						{
+							await sc.StartAsync(Helper.Enum_Env_Helper.SCHEDULE.UPDATE_TIME_COUNT_TOKEN, 00, 01);
+						}
+						else
+						{
+							await sc.StopAsync();
+						}
 					}
-					else
+					catch(Exception ex)
 					{
-						await sc.StopAsync();
+						Console.WriteLine(ex.ToString());
 					}
-
 					break;
+				#endregion
+
+				case 9:
+					#region Case 9
+					Facebook_Si_Fb_Crawl_Comment fbcc = new Facebook_Si_Fb_Crawl_Comment();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
+
+					Console.WriteLine("Nhap type(0: chan, 1: le): ");
+					byte type = byte.Parse(Console.ReadLine());
+
+					while (true)
+					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
+						try
+						{
+							await fbcc.Crawl(totalThread, type);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
+						await ContinueWith(TimeSpan.FromMinutes(5));
+					}
 				#endregion
 
 				default:

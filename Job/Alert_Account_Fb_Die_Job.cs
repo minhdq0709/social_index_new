@@ -13,7 +13,7 @@ namespace SocialNetwork_New.Job
 		public async Task Execute(IJobExecutionContext context)
 		{
 			IEnumerable<AccessTokenFacebook> listToken = null;
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
 			{
 				listToken = mysql.SelectTokenNotActiveByManager($"{Config_System.USER_DIE}, {Config_System.GET_TOKEN_BACK}");
 			}
@@ -26,7 +26,7 @@ namespace SocialNetwork_New.Job
 
 		private async Task SendMessageToGroup(IEnumerable<AccessTokenFacebook> data)
 		{
-			Telegram_Helper bot = new Telegram_Helper(Config_System.KEY_BOT_TIKTOK);
+			Telegram_Helper bot = new Telegram_Helper(Config_System.KEY_BOT);
 			StringBuilder sb = new StringBuilder();
 			List<string> lstMess = new List<string>();
 			string checkNewManager = "";

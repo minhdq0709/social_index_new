@@ -8,7 +8,7 @@ namespace SocialNetwork_New.Job
 	{
 		public Task Execute(IJobExecutionContext context)
 		{
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_FB_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
 			{
 				mysql.UpdateTimeCountTokenDaily();
 			}

@@ -28,10 +28,13 @@
 		public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=Campain_PostLinks_Facebook_Db;Password=UgPTNbOSDtCfj0zdmGyH;charset=utf8;PORT=3306";
 		public static readonly string DB_SOCIAL_INDEX_V2_2_207 = "Server=192.168.23.22;User ID=social_index_v2_2_207;Password=h5T8jPiwF72kQfPenka7;charset=utf8;PORT=3306";
 		public static readonly string DB_FB_2_207 = "Server=192.168.23.22;User ID=FacebookDb_2_207;Password=h5T8jPiwF72kQfPenka7;charset=utf8;PORT=3306";
+		public static readonly byte ON_SEVER = 1;
 
 		/* Local */
 		//public static readonly string DB_SOCIAL_INDEX_V2_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
 		//public static readonly string DB_FB_51_79 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
+		//public static readonly string DB_SOCIAL_INDEX_V2_2_207 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
+		//public static readonly string DB_FB_2_207 = "Server=192.168.23.22;User ID=minhdq;Password=wgy2FdMt0rXfcmCWGSqa;charset=utf8;PORT=3306";
 
 		/* Telegram */
 		public static readonly string KEY_BOT = "5119893484:AAGZbx3izF7B8ywoDmc5gIaAwYRw26doAQ4";

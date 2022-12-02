@@ -59,7 +59,7 @@ namespace SocialNetwork_New.Controller
 		private int SetupListPost(int start)
 		{
 			List<SiDemandSourcePost_Model> listData = new List<SiDemandSourcePost_Model>();
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				listData = mysql.SelectFromTableSiDemandSourcePost(start, "tiktok");
 			}
@@ -83,7 +83,7 @@ namespace SocialNetwork_New.Controller
 			}
 
 			ushort offset = 0;
-			Kafka_Helper kf = new Kafka_Helper();
+			Kafka_Helper kf = new Kafka_Helper(Config_System.SERVER_LINK);
 			HttpClient_Helper client = new HttpClient_Helper();
 			string template = @"https://tiktok-all-in-one.p.rapidapi.com/video/comments?id={0}&offset={1}";
 			data.status = Config_System.DONE;
@@ -130,8 +130,9 @@ namespace SocialNetwork_New.Controller
 				offset += 20;
 			}
 
+			kf.Dispose();
 			/* Update in4 post to db */
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(data);
 			}
@@ -169,12 +170,14 @@ namespace SocialNetwork_New.Controller
 			}
 
 			Tiktok_Post_Kafka_Model dataToKafka = SetContentPost(tempData);
-			Kafka_Helper kh = new Kafka_Helper();
+			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
 
 			await kh.InsertPost(
 				String_Helper.ToJson<Tiktok_Post_Kafka_Model>(dataToKafka),
 				Config_System.TOPIC_TIKTOK_POST
 			);
+
+			kh.Dispose();
 		}
 
 		private async Task Run(byte indexThread)

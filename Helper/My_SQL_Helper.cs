@@ -3,6 +3,7 @@ using SocialNetwork_New.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace SocialNetwork_New.Helper
 {
@@ -62,6 +63,7 @@ namespace SocialNetwork_New.Helper
 								priority = Convert.ToInt32(row["priority"].ToString()),
 								frequency = row["frequency"].ToString(),
 								frequency_crawl_current_date = Convert.ToInt32(row["frequency_crawl_current_date"].ToString()),
+								frequency_crawl_status_current_date = row["frequency_crawl_status_current_date"].ToString(),
 								demand = row["demand"].ToString(),
 								create_time = Convert.ToDateTime(row["create_time"].ToString()),
 								update_time = Convert.ToDateTime(row["update_time"].ToString()),
@@ -74,7 +76,7 @@ namespace SocialNetwork_New.Helper
 								user_crawler = row["user_crawler"].ToString(),
 								is_ended = Convert.ToInt32(row["is_ended"].ToString()),
 								ticket_id = Convert.ToInt32(row["ticket_id"].ToString())
-							});
+							}) ;
 						}
 						catch (Exception) { }
 					}
@@ -168,6 +170,65 @@ namespace SocialNetwork_New.Helper
 								post_id = row["post_id"].ToString(),
 								create_time = Convert.ToDateTime(row["create_time"].ToString()),
 								update_time = Convert.ToDateTime(row["update_time"].ToString())
+							});
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+					}
+				}
+
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.ToString());
+				_conn.Close();
+			}
+
+			return metaData;
+		}
+
+		public List<Si_Fb_Crawl_Comment_Model> SelectSi_Fb_Crawl_Comment(int start, sbyte status, byte type)
+		{
+			_conn.Open();
+
+			string query = $"SELECT * FROM social_index_v2.si_fb_craw_comment where status = {status}";
+			if(type == 0)
+			{
+				query += " and mod(id, 2) = 0";
+			}
+			else
+			{
+				query += " and mod(id, 2) != 0";
+			}
+
+			query += $" limit {start}, 200;"; //order by id desc
+
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			List<Si_Fb_Crawl_Comment_Model> metaData = new List<Si_Fb_Crawl_Comment_Model>();
+			try
+			{
+				MySqlDataReader row = cmd.ExecuteReader();
+
+				if (row.HasRows)
+				{
+					while (row.Read())
+					{
+						try
+						{
+							metaData.Add(new Si_Fb_Crawl_Comment_Model
+							{
+								id = Convert.ToInt32(row["id"].ToString()),
+								post_id = row["post_id"].ToString(),
+								create_time = Convert.ToDateTime(row["create_time"].ToString()),
+								update_time = string.IsNullOrEmpty(row["update_time"].ToString()) ? Convert.ToDateTime(row["create_time"].ToString()): Convert.ToDateTime(row["update_time"].ToString()),
+								status = Convert.ToInt32(row["status"].ToString()),
+								type = Convert.ToInt32(row["type"].ToString())
 							});
 						}
 						catch (Exception ex)
@@ -282,8 +343,9 @@ namespace SocialNetwork_New.Helper
 
 				_conn.Close();
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/SelectTokenNotActiveByManager.txt", ex.ToString() + "\n" + query + "\n");
 				if (_conn != null)
 				{
 					_conn.Close();
@@ -336,7 +398,7 @@ namespace SocialNetwork_New.Helper
 				cmd.Parameters.Add("@fb_tokens_id", MySqlDbType.Int32).Value = data.Id;
 				cmd.Parameters.Add("@access_token", MySqlDbType.VarChar).Value = data.Token;
 				cmd.Parameters.Add("@status", MySqlDbType.Int32).Value = data.StatusToken == 1 ? 0 : 1; // 1: die, 0: live
-				cmd.Parameters.Add("@postdate", MySqlDbType.Date).Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+				cmd.Parameters.Add("@postdate", MySqlDbType.Timestamp).Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 				cmd.Parameters.Add("@manager", MySqlDbType.VarChar).Value = data.Manager;
 				cmd.Parameters.Add("@user", MySqlDbType.VarChar).Value = data.User;
 				cmd.Parameters.Add("@fan_page_link", MySqlDbType.VarChar).Value = data.FanPageLink;
@@ -468,6 +530,41 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
+		public int InsertToTableHistoryFbPost(Si_Fb_Crawl_Comment_Model data)
+		{
+			try
+			{
+				_conn.Open();
+
+				string query = "INSERT IGNORE INTO FacebookDb.History_Fb_Post(source_post_id, create_time_post, comments_real) " +
+						"VALUES(@source_post_id, @create_time_post, @comments_real)";
+
+				MySqlCommand cmd = new MySqlCommand();
+				cmd.Connection = _conn;
+				;
+				cmd.CommandText = query;
+
+				cmd.Parameters.Add("@source_post_id", MySqlDbType.VarChar).Value = data.post_id;
+				cmd.Parameters.Add("@create_time_post", MySqlDbType.Timestamp).Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+				cmd.Parameters.Add("@comments_real", MySqlDbType.Int32).Value = data.total_comment;
+
+				int row = cmd.ExecuteNonQuery();
+				_conn.Close();
+
+				return row;
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/Json3.txt", ex.ToString() + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+
+				return 0;
+			}
+		}
+
 		public List<Token_Yt_Tiktok_TwitterModel> SelectTokenYT_Tiktok_Twitetr(byte type)
 		{
 			_conn.Open();
@@ -552,7 +649,11 @@ namespace SocialNetwork_New.Helper
 		{
 			_conn.Open();
 
-			string query = $"UPDATE social_index_v2.si_demand_source SET update_time = @update_time, status = @status, frequency_crawl_status_current_date = @frequency_crawl_status_current_date where Id = @Id;";
+			string query = $"UPDATE social_index_v2.si_demand_source SET update_time = @update_time, " +
+				$"status = @status, " +
+				$"frequency_crawl_current_date = @frequency_crawl_current_date, " +
+				$"frequency_crawl_status_current_date = @frequency_crawl_status_current_date," +
+				$"user_crawler = @user_crawler where Id = @Id;";
 
 			MySqlCommand cmd = new MySqlCommand();
 
@@ -561,7 +662,9 @@ namespace SocialNetwork_New.Helper
 
 			cmd.Parameters.AddWithValue("@update_time", data.update_time);
 			cmd.Parameters.AddWithValue("@status", data.status);
-			cmd.Parameters.AddWithValue("@frequency_crawl_status_current_date", "done");
+			cmd.Parameters.AddWithValue("@frequency_crawl_status_current_date", data.frequency_crawl_status_current_date);
+			cmd.Parameters.AddWithValue("@frequency_crawl_current_date", data.frequency_crawl_current_date);
+			cmd.Parameters.AddWithValue("@user_crawler", data.user_crawler);
 			cmd.Parameters.AddWithValue("@Id", data.id);
 
 			try
@@ -600,6 +703,92 @@ namespace SocialNetwork_New.Helper
 				if (_conn != null)
 				{
 					_conn.Close();
+				}
+			}
+		}
+
+		public void UpdateStatusAndUpdateTime_Si_Fb_Crawl_Comment(Si_Fb_Crawl_Comment_Model data)
+		{
+			_conn.Open();
+
+			string query = $"UPDATE social_index_v2.si_fb_craw_comment SET status = {data.status}, " +
+				$"update_time = '{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}' " +
+				$"where id = {data.id};";
+
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			try
+			{
+				cmd.ExecuteNonQuery();
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateStatusAndUpdateTime_Si_Fb_Crawl_Comment.txt", ex.ToString() + "\n" + query + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+			}
+		}
+
+		public void UpdateStatusTokenByUser(IEnumerable<string> listUserName, int status)
+		{
+			_conn.Open();
+
+			string query = $"UPDATE FacebookDb.fb_tokens SET StatusToken = {status}, Datetime_tokendie = '{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}' " +
+				$"where User in('{listUserName.Aggregate((x, y) => x + "','" + y)}') and StatusToken = {Config_System.USER_LIVE}";
+
+			if (status == Config_System.GET_TOKEN_BACK)
+			{
+				query += " and Is_Page_Owner = 1";
+			}
+
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			try
+			{
+				cmd.ExecuteNonQuery();
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateStatusTokenByUser.txt", ex.ToString() + "\n" + query + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+					_conn.Dispose();
+				}
+			}
+		}
+
+		public void UpdatePageInvalidate(IEnumerable<string> listId, string status)
+		{
+			_conn.Open();
+
+			string query = $"UPDATE FacebookDb.fb_tokens SET StatusToken = {status}, Datetime_tokendie = '{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}' " +
+				$"where id in({listId.Aggregate((x, y) => x + "," + y)})";
+
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			try
+			{
+				cmd.ExecuteNonQuery();
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdatePageInvalidate.txt", ex.ToString() + "\n" + query + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+					_conn.Dispose();
 				}
 			}
 		}

@@ -25,7 +25,7 @@ namespace SocialNetwork_New.Controller
 				start = int.Parse(text);
 			}
 
-			if (SetupListPost(0) == 0)
+			if (SetupListPost(start) == 0)
 			{
 				File.WriteAllText(pathFile, "0");
 				return;
@@ -55,7 +55,7 @@ namespace SocialNetwork_New.Controller
 		private int SetupListPost(int start)
 		{
 			List<SiDemandSourcePost_Model> listData = new List<SiDemandSourcePost_Model>();
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				listData = mysql.SelectFromTableSiDemandSourcePost(start, "youtube");
 			}
@@ -79,7 +79,7 @@ namespace SocialNetwork_New.Controller
 			}
 
 			string pageToken = "";
-			Kafka_Helper kh = new Kafka_Helper();
+			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
 			Telegram_Helper tl = new Telegram_Helper(Config_System.KEY_BOT_YT_COMMENT);
 
 			while (true)
@@ -95,13 +95,9 @@ namespace SocialNetwork_New.Controller
 				}
 
 				List<Youtube_Comment_Kafka_Model> listCmt = GetCommentDetail(obj.items);
-				foreach (Youtube_Comment_Kafka_Model item in listCmt)
-				{
-					/* Send to kafka */
-					await kh.InsertPost(
-						String_Helper.ToJson<Youtube_Comment_Kafka_Model>(item),
-						Config_System.TOPIC_COMMENT_YT);
-				}
+
+				/* Send to kafka */
+				await kh.InsertPost(listCmt, Config_System.TOPIC_COMMENT_YT);
 
 				/* Notify to telegram */
 				string msg = $"Done {listCmt.Count} comment + reply from video {data.post_id}";
@@ -115,12 +111,14 @@ namespace SocialNetwork_New.Controller
 
 				pageToken = obj.nextPageToken;
 			}
+
+			kh.Dispose();
 		}
 
 		private async Task Run(byte thread)
 		{
 			SiDemandSourcePost_Model temp;
-			using(My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using(My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				while (_myQueue.TryDequeue(out temp))
 				{

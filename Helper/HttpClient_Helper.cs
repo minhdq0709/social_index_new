@@ -8,16 +8,21 @@ namespace SocialNetwork_New.Helper
 {
 	class HttpClient_Helper
 	{
-		public async Task<string> GetAsyncDataAsync(string url, bool isProxyDefaultIp = true,  int timeoutMilis = 20_000)
+		public async Task<string> GetAsyncDataAsync(string url, bool isProxyDefaultIp = true, int timeoutMilis = 20_000)
 		{
 			using (HttpClientHandler handler = new HttpClientHandler())
 			{
 				handler.Proxy = new WebProxy(isProxyDefaultIp ? Config_System.PROXY_DEFAULT_IP : Config_System.PROXY_RANDOM_IP);
 				handler.UseProxy = true;
 
+				if (handler.SupportsAutomaticDecompression)
+				{
+					handler.AutomaticDecompression = DecompressionMethods.GZip;
+				}
+
 				using (HttpClient client = new HttpClient(handler))
 				{
-					using (var cts = new CancellationTokenSource(timeoutMilis))
+					using (CancellationTokenSource cts = new CancellationTokenSource(timeoutMilis))
 					{
 						try
 						{
@@ -26,7 +31,10 @@ namespace SocialNetwork_New.Helper
 								return await response.Content.ReadAsStringAsync();
 							}
 						}
-						catch (Exception) { }
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
 					}
 				}
 			}

@@ -11,6 +11,7 @@ namespace SocialNetwork_New.Model
 		public int priority { set; get; }
 		public string frequency { set; get; }
 		public int frequency_crawl_current_date { set; get; }
+		public string frequency_crawl_status_current_date { set; get; }
 		public string demand { set; get; }
 		public DateTime create_time { set; get; }
 		public DateTime update_time { set; get; }

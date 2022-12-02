@@ -58,7 +58,7 @@ namespace SocialNetwork_New.Controller
 		{
 			List<SiDemandSource_Model> listData = new List<SiDemandSource_Model>();
 
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				listData = mysql.SelectFromTableSiDemandSource(start, "youtube")
 					.GroupBy(x => x.link)
@@ -91,8 +91,8 @@ namespace SocialNetwork_New.Controller
 				.GetUploadsAsync(YoutubeExplode.Channels.ChannelId.Parse(idChannel))
 				.GetAsyncEnumerator();
 
-			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79);
-			Kafka_Helper kh = new Kafka_Helper();
+			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79);
+			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
 
 			while (await videos.MoveNextAsync())
 			{
@@ -146,6 +146,16 @@ namespace SocialNetwork_New.Controller
 					Config_System.TOPIC_VIDEO_YT);
 			}
 
+			/* Update data to table si_demand_source */
+			source.frequency_crawl_status_current_date = "done";
+			source.user_crawler = "Minhdq";
+			source.update_time = DateTime.Now;
+			source.frequency_crawl_current_date++;
+			source.status = Config_System.DONE;
+
+			mysql.UpdateTimeAndStatusAndFrequencyCrawlStatutToTableSiDemandSource(source);
+
+			kh.Dispose();
 			mysql.Dispose();
 
 			return lastTimePublishedVideo;

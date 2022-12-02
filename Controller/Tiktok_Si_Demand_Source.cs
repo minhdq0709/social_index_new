@@ -1,5 +1,6 @@
 ﻿using SocialNetwork_New.Helper;
 using SocialNetwork_New.Model;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -56,14 +57,13 @@ namespace SocialNetwork_New.Controller
 
 		private int SetupListPost(int start)
 		{
-			List<SiDemandSource_Model> listData = new List<SiDemandSource_Model>();
+			IEnumerable<SiDemandSource_Model> listData = new List<SiDemandSource_Model>();
 
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				listData = mysql.SelectFromTableSiDemandSource(start, "tiktok")
 					.GroupBy(x => x.link)
-					.Select(x => x.First())
-					.ToList();
+					.Select(x => x.First());
 
 				if (listData.Any())
 				{
@@ -74,7 +74,7 @@ namespace SocialNetwork_New.Controller
 				}
 			}
 
-			return listData.Count;
+			return listData.Count();
 		}
 
 		private async Task GetVideo(SiDemandSource_Model data)
@@ -94,8 +94,8 @@ namespace SocialNetwork_New.Controller
 				return;
 			}
 
-			Kafka_Helper kh = new Kafka_Helper();
-			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.DB_SOCIAL_INDEX_V2_51_79))
+			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
 				foreach (Tiktok_Rapid_API6_Model.Video item in listVideo.videos)
 				{
@@ -105,7 +105,18 @@ namespace SocialNetwork_New.Controller
 					mysql.InsertToTableSi_demand_source_post(dataSendKafka);
 					await Task.Delay(100);
 				}
+
+				/* Update data to table si_demand_source */
+				data.frequency_crawl_status_current_date = "done";
+				data.user_crawler = "Minhdq";
+				data.update_time = DateTime.Now;
+				data.frequency_crawl_current_date++;
+				data.status = Config_System.DONE;
+
+				mysql.UpdateTimeAndStatusAndFrequencyCrawlStatutToTableSiDemandSource(data);
 			}
+
+			kh.Dispose();
 		}
 
 		private async Task Run(byte thread)

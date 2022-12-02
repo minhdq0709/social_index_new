@@ -7,28 +7,35 @@ using System.Threading.Tasks;
 
 namespace SocialNetwork_New.Helper
 {
-	class Kafka_Helper
+	class Kafka_Helper : IDisposable
 	{
-		private static ProducerConfig _config = new ProducerConfig
-		{
-			BootstrapServers = Config_System.SERVER_LINK,
-			ClientId = Dns.GetHostName(),
-			Partitioner = Partitioner.Random
-		};
+		private readonly ProducerConfig _config;
+		private readonly IProducer<string, string> _producer;
 
-		private static IProducer<string, string> producer = new ProducerBuilder<string, string>(_config)
+		public Kafka_Helper(string serverLink)
+		{
+			_config = new ProducerConfig
+			{
+				BootstrapServers = serverLink,
+				ClientId = Dns.GetHostName(),
+				Partitioner = Partitioner.Random
+			};
+
+			_producer = new ProducerBuilder<string, string>(_config)
 						.SetKeySerializer(Serializers.Utf8)
 						.SetValueSerializer(Serializers.Utf8)
 						.Build();
+		}
 
 		public async Task<bool> InsertPost(string messagejson, string topic)
 		{
 			try
 			{
-				DeliveryResult<string, string> val = await producer.ProduceAsync(
+				DeliveryResult<string, string> val = await _producer.ProduceAsync(
 					topic,
-					new Message<string, string> { 
-						Value = messagejson 
+					new Message<string, string>
+					{
+						Value = messagejson
 					}
 				);
 
@@ -44,30 +51,20 @@ namespace SocialNetwork_New.Helper
 
 		public async Task<bool> InsertPost<T>(IEnumerable<T> listMessage, string topic)
 		{
-			ProducerConfig config = new ProducerConfig
-			{
-				BootstrapServers = Config_System.SERVER_LINK_TEST,
-				ClientId = Dns.GetHostName(),
-				Partitioner = Partitioner.Random
-			};
-
 			try
 			{
-				using (IProducer<string, string> producer = new ProducerBuilder<string, string>(config)
-						.SetKeySerializer(Serializers.Utf8)
-						.SetValueSerializer(Serializers.Utf8)
-						.Build())
+				foreach (T item in listMessage)
 				{
-					foreach(T item in listMessage)
-					{
-						DeliveryResult<string, string> val = await producer.ProduceAsync(
-							topic,
-							new Message<string, string> { 
-								Value = String_Helper.ToJson<T>(item) 
-							}
-						);
-					}
+					DeliveryResult<string, string> val = await _producer.ProduceAsync(
+						topic,
+						new Message<string, string>
+						{
+							Value = String_Helper.ToJson<T>(item)
+						}
+					);
 				}
+
+				_producer.Flush(TimeSpan.FromSeconds(10));
 
 				return true;
 			}
@@ -77,6 +74,24 @@ namespace SocialNetwork_New.Helper
 			}
 
 			return false;
+		}
+
+		public void Flush(TimeSpan ms)
+		{
+			_producer.Flush(ms);
+		}
+
+		public void Dispose()
+		{
+			if (_producer != null)
+			{
+				_producer.Dispose();
+			}
+		}
+
+		~Kafka_Helper()
+		{
+
 		}
 	}
 }
