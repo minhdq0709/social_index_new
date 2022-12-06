@@ -23,6 +23,7 @@ namespace SocialNetwork_New.Helper
 
 			return Regex.Replace(text, @"\t|\n|\r|\s+|&nbsp;|&amp;", " ");
 		}
+
 		public static T ToObject<T>(string json)
 		{
 			try

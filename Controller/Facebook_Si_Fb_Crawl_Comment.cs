@@ -19,7 +19,7 @@ namespace SocialNetwork_New.Controller
 			#region Setup list post
 			int start = 0;
 
-			if (SetupPostToQueue(start, Config_System.NEW_DATA, type) == 0)
+			if (SetupPostToQueue(start, Config_System.NEW_DATA) == 0)
 			{
 				string pathFile = $"{GetInstancePathFolder()}/start.txt";
 				if (File.Exists(pathFile))
@@ -28,7 +28,7 @@ namespace SocialNetwork_New.Controller
 					start = int.Parse(text);
 				}
 
-				if(SetupPostToQueue(start, Config_System.HANDLING, type) == 0)
+				if(SetupPostToQueue(start, Config_System.HANDLING) == 0)
 				{
 					start = 0;
 					File.WriteAllText(pathFile, $"{start}");
@@ -62,7 +62,7 @@ namespace SocialNetwork_New.Controller
 			#endregion
 
 			#region Update status token to db
-			if (type == 0)
+			if (type == 1)
 			{
 				UpdateStatusToken(GetInstanceMapHistoryToken());
 			}
@@ -73,21 +73,21 @@ namespace SocialNetwork_New.Controller
 			#endregion
 		}
 
-		private List<Si_Fb_Crawl_Comment_Model> GetListPost(int start, sbyte status, byte type)
+		private List<Si_Fb_Crawl_Comment_Model> GetListPost(int start, sbyte status)
 		{
 			List<Si_Fb_Crawl_Comment_Model> listData = new List<Si_Fb_Crawl_Comment_Model>();
 
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
-				listData = mysql.SelectSi_Fb_Crawl_Comment(start, status, type);
+				listData = mysql.SelectSi_Fb_Crawl_Comment(start, status);
 			}
 
 			return listData;
 		}
 
-		private int SetupPostToQueue(int start, sbyte status, byte type)
+		private int SetupPostToQueue(int start, sbyte status)
 		{
-			List<Si_Fb_Crawl_Comment_Model> listData = GetListPost(start, status, type);
+			List<Si_Fb_Crawl_Comment_Model> listData = GetListPost(start, status);
 			int len = 0;
 
 			if (listData.Any())
@@ -113,7 +113,6 @@ namespace SocialNetwork_New.Controller
 			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
 			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79);
 			HttpClient_Helper client = new HttpClient_Helper();
-			int totalComment = 0;
 
 			while (true)
 			{
@@ -206,7 +205,7 @@ namespace SocialNetwork_New.Controller
 							Config_System.TOPIC_FB_GROUP_COMMENT
 						);
 
-						++totalComment;
+						++data.total_comment;
 					}
 				}
 
@@ -228,7 +227,6 @@ namespace SocialNetwork_New.Controller
 			kh.Dispose();
 
 			/* Update to db */
-			data.total_comment = totalComment;
 			mysql.InsertToTableHistoryFbPost(data);
 
 			mysql.Dispose();
@@ -254,37 +252,6 @@ namespace SocialNetwork_New.Controller
 				}
 
 				await Task.Delay(indexThread * 1_000);
-			}
-		}
-
-		private void UpdateStatusToken(IDictionary<int, AccessTokenFacebook> mapData)
-		{
-			IEnumerable<string> userDied = mapData.Where(x => x.Value.StatusToken == Config_System.USER_DIE).Select(x => x.Value.User);
-			IEnumerable<string> getTokenBack = mapData.Where(x => x.Value.StatusToken == Config_System.GET_TOKEN_BACK && !x.Value.Is_Page_Owner).Select(x => x.Value.Id.ToString()).Distinct();
-			IEnumerable<string> pageInValidate = mapData.Where(x => x.Value.StatusToken == Config_System.PAGE_INVALIDATE).Select(x => x.Value.Id.ToString()).Distinct();
-			IEnumerable<string> getTokenBackByPageOwner = mapData.Where(x => x.Value.StatusToken == Config_System.GET_TOKEN_BACK && x.Value.Is_Page_Owner == true).Select(x => x.Value.User).Distinct();
-
-			using(My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
-			{
-				if (userDied.Any())
-				{
-					mysql.UpdateStatusTokenByUser(userDied, Config_System.USER_DIE);
-				}
-
-				if (getTokenBackByPageOwner.Any())
-				{
-					mysql.UpdateStatusTokenByUser(getTokenBackByPageOwner, Config_System.GET_TOKEN_BACK);
-				}
-
-				if (getTokenBack.Any())
-				{
-					mysql.UpdatePageInvalidate(getTokenBack, $"{Config_System.GET_TOKEN_BACK}");
-				}
-
-				if (pageInValidate.Any())
-				{
-					mysql.UpdatePageInvalidate(pageInValidate, $"{Config_System.PAGE_INVALIDATE}");
-				}
 			}
 		}
 	}

@@ -10,8 +10,13 @@ namespace SocialNetwork_New.Controller
 {
 	class Youtube_Base
 	{
-		private RoundRobinList<Token_Yt_Tiktok_TwitterModel> _roundRobinList;
+		private RoundRobin_Helper<Token_Yt_Tiktok_TwitterModel> _roundRobinList;
 		private string _path = $"{Environment.CurrentDirectory}/Check/";
+
+		public Youtube_Base()
+		{
+			_roundRobinList = new RoundRobin_Helper<Token_Yt_Tiktok_TwitterModel>();
+		}
 
 		public int SetupToken(byte type)
 		{
@@ -24,12 +29,7 @@ namespace SocialNetwork_New.Controller
 
 			if (listToken.Any())
 			{
-				if (_roundRobinList != null)
-				{
-					_roundRobinList = null;
-				}
-
-				_roundRobinList = new RoundRobinList<Token_Yt_Tiktok_TwitterModel>(listToken);
+				_roundRobinList.SetUp(listToken);
 			}
 
 			return listToken.Count;
@@ -120,7 +120,7 @@ namespace SocialNetwork_New.Controller
 			return String_Helper.ToObject<Youtube_Model>(json);
 		}
 
-		public RoundRobinList<Token_Yt_Tiktok_TwitterModel> GetInstanceRoundRobin()
+		public RoundRobin_Helper<Token_Yt_Tiktok_TwitterModel> GetInstanceRoundRobin()
 		{
 			return _roundRobinList;
 		}

@@ -25,7 +25,7 @@ namespace SocialNetwork_New.Controller
 				start = int.Parse(text);
 			}
 
-			if (SetupListPost(start) == 0)
+			if (SetupListPost(0) == 0)
 			{
 				File.WriteAllText(pathFile, "0");
 				return;

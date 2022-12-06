@@ -134,5 +134,36 @@ namespace SocialNetwork_New.Controller
 
 			return listData;
 		}
+
+		protected void UpdateStatusToken(IDictionary<int, AccessTokenFacebook> mapData)
+		{
+			IEnumerable<string> userDied = mapData.Where(x => x.Value.StatusToken == Config_System.USER_DIE).Select(x => x.Value.User);
+			IEnumerable<string> getTokenBack = mapData.Where(x => x.Value.StatusToken == Config_System.GET_TOKEN_BACK && !x.Value.Is_Page_Owner).Select(x => x.Value.Id.ToString()).Distinct();
+			IEnumerable<string> pageInValidate = mapData.Where(x => x.Value.StatusToken == Config_System.PAGE_INVALIDATE).Select(x => x.Value.Id.ToString()).Distinct();
+			IEnumerable<string> getTokenBackByPageOwner = mapData.Where(x => x.Value.StatusToken == Config_System.GET_TOKEN_BACK && x.Value.Is_Page_Owner == true).Select(x => x.Value.User).Distinct();
+
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
+			{
+				if (userDied.Any())
+				{
+					mysql.UpdateStatusTokenByUser(userDied, Config_System.USER_DIE);
+				}
+
+				if (getTokenBackByPageOwner.Any())
+				{
+					mysql.UpdateStatusTokenByUser(getTokenBackByPageOwner, Config_System.GET_TOKEN_BACK);
+				}
+
+				if (getTokenBack.Any())
+				{
+					mysql.UpdatePageInvalidate(getTokenBack, $"{Config_System.GET_TOKEN_BACK}");
+				}
+
+				if (pageInValidate.Any())
+				{
+					mysql.UpdatePageInvalidate(pageInValidate, $"{Config_System.PAGE_INVALIDATE}");
+				}
+			}
+		}
 	}
 }

@@ -18,9 +18,13 @@ namespace SocialNetwork_New
 			Console.WriteLine("7: Alert account fb died");
 			Console.WriteLine("8: Update time count fb token daily");
 			Console.WriteLine("9: Si fb crawl comment");
+			Console.WriteLine("10: Fb campaign post link");
+			Console.WriteLine("11: Fb temp group post");
 
 			byte choose = byte.Parse(Console.ReadLine());
 			byte totalThread = 4;
+			byte isUpdateStatusTokenToDb = 0;
+
 			Scheduler sc = new Scheduler();
 
 			switch (choose)
@@ -208,15 +212,67 @@ namespace SocialNetwork_New
 					Console.WriteLine("Nhap so thread: ");
 					totalThread = byte.Parse(Console.ReadLine());
 
-					Console.WriteLine("Nhap type(0: chan, 1: le): ");
-					byte type = byte.Parse(Console.ReadLine());
+					Console.WriteLine("Co save status token? (1: Co, 0: ko)");
+					isUpdateStatusTokenToDb = byte.Parse(Console.ReadLine());
 
 					while (true)
 					{
 						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
-							await fbcc.Crawl(totalThread, type);
+							await fbcc.Crawl(totalThread, isUpdateStatusTokenToDb);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
+						await ContinueWith(TimeSpan.FromMinutes(5));
+					}
+				#endregion
+
+				case 10:
+					#region Case 10
+					Facebook_Campagin_Post_Link fbcpl = new Facebook_Campagin_Post_Link();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
+
+					Console.WriteLine("Nhap campaign id: ");
+					byte campaignId = byte.Parse(Console.ReadLine());
+
+					while (true)
+					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
+						try
+						{
+							await fbcpl.Crawl(totalThread, campaignId);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.ToString());
+						}
+
+						await ContinueWith(TimeSpan.FromMinutes(5));
+					}
+				#endregion
+
+				case 11:
+					#region Case 11
+					Facebook_Temp_Group_Post fbtgp = new Facebook_Temp_Group_Post();
+
+					Console.WriteLine("Nhap so thread: ");
+					totalThread = byte.Parse(Console.ReadLine());
+
+					Console.WriteLine("Co save status token? (1: Co, 0: ko)");
+					isUpdateStatusTokenToDb = byte.Parse(Console.ReadLine());
+
+					while (true)
+					{
+						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
+						try
+						{
+							await fbtgp.Crawl(totalThread, isUpdateStatusTokenToDb);
 						}
 						catch (Exception ex)
 						{

@@ -67,7 +67,6 @@ namespace SocialNetwork_New.Helper
 								demand = row["demand"].ToString(),
 								create_time = Convert.ToDateTime(row["create_time"].ToString()),
 								update_time = Convert.ToDateTime(row["update_time"].ToString()),
-								update_time_crawl = Convert.ToDateTime(row["update_time_crawl"].ToString()),
 								status = Convert.ToInt32(row["status"].ToString()),
 								source_id = row["source_id"].ToString(),
 								source_name = row["source_name"].ToString(),
@@ -76,9 +75,9 @@ namespace SocialNetwork_New.Helper
 								user_crawler = row["user_crawler"].ToString(),
 								is_ended = Convert.ToInt32(row["is_ended"].ToString()),
 								ticket_id = Convert.ToInt32(row["ticket_id"].ToString())
-							}) ;
+							});
 						}
-						catch (Exception) { }
+						catch (Exception ex) { }
 					}
 				}
 
@@ -86,6 +85,48 @@ namespace SocialNetwork_New.Helper
 			}
 			catch (Exception)
 			{
+				_conn.Close();
+			}
+
+			return metaData;
+		}
+
+		public List<Temp_Group_Post_Model> SelectTemp_Group_Post(int start, DateTime dateCrawl)
+		{
+			_conn.Open();
+
+			string query = $"SELECT * FROM FacebookDb.temp_grouppost where date(Getdate) = '{dateCrawl.ToString("yyyy-MM-dd")}' order by Comment desc limit {start}, 200;";
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			List<Temp_Group_Post_Model> metaData = new List<Temp_Group_Post_Model>();
+			try
+			{
+				MySqlDataReader row = cmd.ExecuteReader();
+
+				if (row.HasRows)
+				{
+					while (row.Read())
+					{
+						try
+						{
+							metaData.Add(new Temp_Group_Post_Model
+							{
+								Id = Convert.ToInt32(row["Id"].ToString()),
+								Createdtime = Convert.ToDateTime(row["Createdtime"].ToString()),
+								IdPost = row["IdPost"].ToString()
+							});
+						}
+						catch (Exception ex) { }
+					}
+				}
+
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.ToString());
 				_conn.Close();
 			}
 
@@ -115,19 +156,13 @@ namespace SocialNetwork_New.Helper
 							metaData.Add(new SiDemandSourcePost_Model
 							{
 								id = Convert.ToInt32(row["id"].ToString()),
-								//si_demand_source_id = Convert.ToInt32(row["si_demand_source_id"].ToString()),
 								post_id = row["post_id"].ToString(),
 								link = row["link"].ToString(),
 								create_time = Convert.ToDateTime(row["create_time"].ToString()),
 								update_time = Convert.ToDateTime(row["update_time"].ToString()),
-								//status = Convert.ToInt32(row["status"].ToString()),
 								title = row["title"].ToString(),
 								content = row["content"].ToString(),
-								//total_comment = Convert.ToInt32(row["total_comment"].ToString()),
-								//total_like = Convert.ToInt32(row["total_like"].ToString()),
-								//total_share = Convert.ToInt32(row["total_share"].ToString()),
-								user_crawler = row["user_crawler"].ToString(),
-								//lock_tmp = Convert.ToInt32(row["lock_tmp"].ToString())
+								user_crawler = row["user_crawler"].ToString()
 							});
 						}
 						catch (Exception) { }
@@ -190,21 +225,53 @@ namespace SocialNetwork_New.Helper
 			return metaData;
 		}
 
-		public List<Si_Fb_Crawl_Comment_Model> SelectSi_Fb_Crawl_Comment(int start, sbyte status, byte type)
+		public List<Campaign_Post_Link_Model> SelectTableCampain_PostLinks(byte campaignId)
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM social_index_v2.si_fb_craw_comment where status = {status}";
-			if(type == 0)
+			string query = $"SELECT * FROM FacebookDb.Campain_PostLinks where CampainId = {campaignId} and CampainFlatFormTypeId in (2, 3) and CrawlerStatus = 0 limit 0, 200;";
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			List<Campaign_Post_Link_Model> metaData = new List<Campaign_Post_Link_Model>();
+			try
 			{
-				query += " and mod(id, 2) = 0";
+				MySqlDataReader row = cmd.ExecuteReader();
+
+				while (row.Read())
+				{
+					metaData.Add(
+						new Campaign_Post_Link_Model
+						{
+							Id = Convert.ToInt32(row["Id"]),
+							CampainId = Convert.ToInt32(row["CampainId"]),
+							SourceId = (string)row["SourceId"],
+							PostId = (string)row["PostId"],
+							CampainFlatFormTypeId = Convert.ToInt32(row["CampainFlatFormTypeId"]),
+							LastUpdate = DateTime.Parse(row["LastUpdate"].ToString())
+						});
+				}
+
+				_conn.Close();
 			}
-			else
+			catch (Exception ex)
 			{
-				query += " and mod(id, 2) != 0";
+				Console.WriteLine(ex.ToString());
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
 			}
 
-			query += $" limit {start}, 200;"; //order by id desc
+			return metaData;
+		}
+
+		public List<Si_Fb_Crawl_Comment_Model> SelectSi_Fb_Crawl_Comment(int start, sbyte status)
+		{
+			_conn.Open();
+
+			string query = $"SELECT * FROM social_index_v2.si_fb_craw_comment where status = {status} limit {start}, 200;";
 
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
@@ -530,6 +597,76 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
+		public int InsertToTableHistoryFbPost(Temp_Group_Post_Model data)
+		{
+			try
+			{
+				_conn.Open();
+
+				string query = "INSERT IGNORE INTO FacebookDb.History_Fb_Post(source_post_id, create_time_post, comments_real, shares_real) " +
+						"VALUES(@source_post_id, @create_time_post, @comments_real, @shares_real)";
+
+				MySqlCommand cmd = new MySqlCommand();
+				cmd.Connection = _conn;
+				;
+				cmd.CommandText = query;
+
+				cmd.Parameters.Add("@source_post_id", MySqlDbType.VarChar).Value = data.IdPost;
+				cmd.Parameters.Add("@create_time_post", MySqlDbType.Timestamp).Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+				cmd.Parameters.Add("@comments_real", MySqlDbType.Int32).Value = data.Total_Comment;
+
+				int row = cmd.ExecuteNonQuery();
+				_conn.Close();
+
+				return row;
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/Json3.txt", ex.ToString() + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+
+				return 0;
+			}
+		}
+
+		public int InsertToTableHistoryFbPost(Campaign_Post_Link_Model data)
+		{
+			try
+			{
+				_conn.Open();
+
+				string query = "INSERT IGNORE INTO FacebookDb.History_Fb_Post(source_post_id, create_time_post, comments_real) " +
+						"VALUES(@source_post_id, @create_time_post, @comments_real)";
+
+				MySqlCommand cmd = new MySqlCommand();
+				cmd.Connection = _conn;
+				;
+				cmd.CommandText = query;
+
+				cmd.Parameters.Add("@source_post_id", MySqlDbType.VarChar).Value = data.PostId;
+				cmd.Parameters.Add("@create_time_post", MySqlDbType.Timestamp).Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+				cmd.Parameters.Add("@comments_real", MySqlDbType.Int32).Value = data.Comments;
+
+				int row = cmd.ExecuteNonQuery();
+				_conn.Close();
+
+				return row;
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/Json3.txt", ex.ToString() + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+
+				return 0;
+			}
+		}
+
 		public int InsertToTableHistoryFbPost(Si_Fb_Crawl_Comment_Model data)
 		{
 			try
@@ -653,6 +790,7 @@ namespace SocialNetwork_New.Helper
 				$"status = @status, " +
 				$"frequency_crawl_current_date = @frequency_crawl_current_date, " +
 				$"frequency_crawl_status_current_date = @frequency_crawl_status_current_date," +
+				$"update_time_crawl = @update_time_crawl," +
 				$"user_crawler = @user_crawler where Id = @Id;";
 
 			MySqlCommand cmd = new MySqlCommand();
@@ -664,6 +802,7 @@ namespace SocialNetwork_New.Helper
 			cmd.Parameters.AddWithValue("@status", data.status);
 			cmd.Parameters.AddWithValue("@frequency_crawl_status_current_date", data.frequency_crawl_status_current_date);
 			cmd.Parameters.AddWithValue("@frequency_crawl_current_date", data.frequency_crawl_current_date);
+			cmd.Parameters.AddWithValue("@update_time_crawl", data.update_time_crawl);
 			cmd.Parameters.AddWithValue("@user_crawler", data.user_crawler);
 			cmd.Parameters.AddWithValue("@Id", data.id);
 
@@ -727,6 +866,31 @@ namespace SocialNetwork_New.Helper
 			catch (Exception ex)
 			{
 				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateStatusAndUpdateTime_Si_Fb_Crawl_Comment.txt", ex.ToString() + "\n" + query + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+			}
+		}
+
+		public void UpdateCrawlerStatus_Campain_PostLinks(Campaign_Post_Link_Model data)
+		{
+			_conn.Open();
+
+			string query = $"UPDATE FacebookDb.Campain_PostLinks SET CrawlerStatus = {data.CrawlerStatus} where id = {data.Id};";
+
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			try
+			{
+				cmd.ExecuteNonQuery();
+				_conn.Close();
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/UpdateCrawlerStatus_Campain_PostLinks.txt", ex.ToString() + "\n" + query + "\n");
 				if (_conn != null)
 				{
 					_conn.Close();

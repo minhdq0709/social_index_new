@@ -150,6 +150,7 @@ namespace SocialNetwork_New.Controller
 			source.frequency_crawl_status_current_date = "done";
 			source.user_crawler = "Minhdq";
 			source.update_time = DateTime.Now;
+			source.update_time_crawl = DateTime.Now;
 			source.frequency_crawl_current_date++;
 			source.status = Config_System.DONE;
 

@@ -3,20 +3,21 @@ using SocialNetwork_New.Model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SocialNetwork_New.Controller
 {
-	class Facebook_Si_Demand_Source_Post : Facebook_Base
+	class Facebook_Campagin_Post_Link : Facebook_Base
 	{
-		private static volatile ConcurrentQueue<SiDemandSourcePost_Model> _myQueue = new ConcurrentQueue<SiDemandSourcePost_Model>();
+		private volatile ConcurrentQueue<Campaign_Post_Link_Model> _myQueue = new ConcurrentQueue<Campaign_Post_Link_Model>();
 
-		public async Task Crawl(byte totalThread)
+		public async Task Crawl(byte totalThread, byte campaginId)
 		{
 			#region Setup list post
-			if (SetupPostToQueue(0) == 0)
+			if (SetupPostToQueue(campaginId) == 0)
 			{
 				return;
 			}
@@ -25,6 +26,7 @@ namespace SocialNetwork_New.Controller
 			#region Setup token
 			if (SetupToken($"{Config_System.USER_LIVE}") == 0)
 			{
+				Console.WriteLine("token = 0");
 				return;
 			}
 			#endregion
@@ -36,11 +38,15 @@ namespace SocialNetwork_New.Controller
 				listTask.Add(Run(i));
 			}
 
-			await Task.WhenAll(listTask); //t2, t3, t4, t5, t6
+			await Task.WhenAll(listTask);
 			#endregion
 
 			#region Update to db
 			await UpdateNumberUseToken(GetInstanceMapHistoryToken());
+			#endregion
+
+			#region Update status token to db
+			UpdateStatusToken(GetInstanceMapHistoryToken());
 			#endregion
 
 			#region Free memory
@@ -48,47 +54,75 @@ namespace SocialNetwork_New.Controller
 			#endregion
 		}
 
-		private int SetupPostToQueue(int start)
+		private int SetupPostToQueue(byte campaginId)
 		{
-			List<SiDemandSourcePost_Model> listData = GetListPost(start, "facebook").OfType<SiDemandSourcePost_Model>().ToList();
+			IEnumerable<Campaign_Post_Link_Model> listData = GetListPost(campaginId);
 
-			foreach (SiDemandSourcePost_Model item in listData)
+			foreach (Campaign_Post_Link_Model item in listData)
 			{
 				_myQueue.Enqueue(item);
 			}
 
-			return listData.Count;
+			return listData.Count();
 		}
 
-		private async Task GetComment(SiDemandSourcePost_Model data)
+		private IEnumerable<Campaign_Post_Link_Model> GetListPost(byte campaginId)
+		{
+			IEnumerable<Campaign_Post_Link_Model> listData;
+
+			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
+			{
+				listData = mysql.SelectTableCampain_PostLinks(campaginId);
+			}
+
+			return listData;
+		}
+
+		private async Task Run(byte indeThread)
+		{
+			Campaign_Post_Link_Model temp;
+			while (_myQueue.TryDequeue(out temp))
+			{
+				await GetComment(temp);
+
+				/* Update status is done */
+				using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ?
+					Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
+				{
+					temp.CrawlerStatus = Config_System.DONE;
+					mysql.UpdateCrawlerStatus_Campain_PostLinks(temp);
+				}
+
+				await Task.Delay(indeThread * 1_000);
+			}
+		}
+
+		private async Task GetComment(Campaign_Post_Link_Model data)
 		{
 			string afterToken = "";
 			ushort limit = 1000;
-			double since = Date_Helper.ConvertDateTimeToTimeStamp(data.update_time);
-			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK_TEST);
+			long since = (long)Date_Helper.ConvertDateTimeToTimeStamp(data.LastUpdate);
+			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
 			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79);
-			int totalComment = 0;
-			byte loop = 1;
 			HttpClient_Helper client = new HttpClient_Helper();
-			AccessTokenFacebook tempToken = new AccessTokenFacebook();
-			bool checkHasError = false;
 
 			while (true)
 			{
-				tempToken = GetInstanceRoundRobin().Next();
-				checkHasError = false;
+				await Task.Delay(40_000);
 
-				string url = $"https://graph.facebook.com/v14.0/{data.post_id}/comments?limit={limit}" +
+				AccessTokenFacebook tempToken = GetInstanceRoundRobin().Next();
+
+				string url = $"https://graph.facebook.com/v14.0/{data.PostId}/comments?limit={limit}" +
 					$"&access_token={tempToken.Token}" +
 					$"&order=reverse_chronological" +
 					$"&since={since}" +
 					$"&after={afterToken}";
 
 				string json = await client.GetAsyncDataAsync(url);
-				await Task.Delay(40_000);
 
 				if (string.IsNullOrEmpty(json))
 				{
+					Console.WriteLine("rong");
 					break;
 				}
 
@@ -108,6 +142,7 @@ namespace SocialNetwork_New.Controller
 				}
 
 				#region Handle error message
+				bool checkHasError = false;
 				if (root.error != null)
 				{
 					checkHasError = true;
@@ -159,13 +194,15 @@ namespace SocialNetwork_New.Controller
 					if (!string.IsNullOrEmpty(item.message))
 					{
 						await kh.InsertPost(
-							String_Helper.ToJson<FB_CommentModel>(SetValueComment(item, data.post_id)),
+							String_Helper.ToJson<FB_CommentModel>(SetValueComment(item, data.PostId)),
 							Config_System.TOPIC_FB_GROUP_COMMENT
 						);
 
-						++totalComment;
+						++data.Comments;
 					}
 				}
+
+				kh.Flush(TimeSpan.FromSeconds(10));
 				#endregion
 
 				if (String.IsNullOrEmpty(root.paging?.next))
@@ -178,37 +215,14 @@ namespace SocialNetwork_New.Controller
 				{
 					break;
 				}
-
-				++loop;
 			}
 
 			kh.Dispose();
-			data.total_comment = totalComment;
-			data.total_share = loop;
 
+			/* Update to db */
 			mysql.InsertToTableHistoryFbPost(data);
+
 			mysql.Dispose();
-		}
-
-		private async Task Run(byte indexThread)
-		{
-			SiDemandSourcePost_Model infoPost;
-			while (_myQueue.TryDequeue(out infoPost))
-			{
-				try
-				{
-					await GetComment(infoPost);
-				}
-				catch (Exception) { }
-
-				using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
-				{
-					infoPost.status = Config_System.DONE;
-					mysql.UpdateTimeAndStatusAndUsernameToTableSiDemandSourcePost(infoPost);
-				}
-
-				await Task.Delay(indexThread * 1_000);
-			}
 		}
 	}
 }

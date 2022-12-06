@@ -7,7 +7,7 @@ namespace SocialNetwork_New.Helper
 {
 	class RoundRobin_Helper<T>
 	{
-		private IList<T> _list;
+		private List<T> _list;
 		private int _size;
 		private int _position;
 
@@ -22,7 +22,7 @@ namespace SocialNetwork_New.Helper
 				throw new NullReferenceException("list");
 			}
 
-			if (_list.Any())
+			if (_list?.Any() ?? false)
 			{
 				_list.Clear();
 				_list = null;
@@ -42,8 +42,8 @@ namespace SocialNetwork_New.Helper
 
 			Interlocked.Increment(ref _position);
 
-			if (_position == Int32.MinValue)
-			{ 
+			if (_position == Int32.MaxValue)
+			{
 				Interlocked.Exchange(ref _position, 0); 
 			}
 

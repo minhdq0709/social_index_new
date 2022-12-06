@@ -72,14 +72,14 @@ namespace SocialNetwork_New.Schedule
 			}
 
 			return TriggerBuilder.Create()
-						.WithIdentity(key)
-						.WithDailyTimeIntervalSchedule
-							(s =>
-								s.WithIntervalInHours(24)
-							.OnEveryDay()
-							.StartingDailyAt(TimeOfDay.HourAndMinuteOfDay(hour, minute))
-							)
-						.Build();
+				.WithIdentity(key)
+				.WithDailyTimeIntervalSchedule
+					(s =>
+						s.WithIntervalInHours(24)
+					.OnEveryDay()
+					.StartingDailyAt(TimeOfDay.HourAndMinuteOfDay(hour, minute))
+					)
+				.Build();
 		}
 	}
 }
