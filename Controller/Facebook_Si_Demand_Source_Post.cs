@@ -13,10 +13,10 @@ namespace SocialNetwork_New.Controller
 	{
 		private static volatile ConcurrentQueue<SiDemandSourcePost_Model> _myQueue = new ConcurrentQueue<SiDemandSourcePost_Model>();
 
-		public async Task Crawl(byte totalThread)
+		public async Task Crawl(byte totalThread, byte isUpdateStatusTokenToDb, byte type)
 		{
 			#region Setup list post
-			if (SetupPostToQueue(0) == 0)
+			if (SetupPostToQueue(0, type) == 0)
 			{
 				return;
 			}
@@ -43,14 +43,21 @@ namespace SocialNetwork_New.Controller
 			await UpdateNumberUseToken(GetInstanceMapHistoryToken());
 			#endregion
 
+			#region Update status token to db
+			if (isUpdateStatusTokenToDb == 1)
+			{
+				UpdateStatusToken(GetInstanceMapHistoryToken());
+			}
+			#endregion
+
 			#region Free memory
 			GetInstanceMapHistoryToken().Clear();
 			#endregion
 		}
 
-		private int SetupPostToQueue(int start)
+		private int SetupPostToQueue(int start, byte type)
 		{
-			List<SiDemandSourcePost_Model> listData = GetListPost(start, "facebook").OfType<SiDemandSourcePost_Model>().ToList();
+			List<SiDemandSourcePost_Model> listData = GetListPost(start, "facebook", type).OfType<SiDemandSourcePost_Model>().ToList();
 
 			foreach (SiDemandSourcePost_Model item in listData)
 			{

@@ -5,17 +5,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SocialNetwork_New.Controller
 {
-	class Facebook_Temp_Group_Post: Facebook_Base
+	class Facebook_Temp_Group_Post : Facebook_Base
 	{
 		private volatile ConcurrentQueue<Temp_Group_Post_Model> _myQueue = new ConcurrentQueue<Temp_Group_Post_Model>();
 
-		public async Task Crawl(byte totalThread, byte isUpdateStatusTokenToDb)
+		public async Task Crawl(byte totalThread, byte isUpdateStatusTokenToDb, byte type)
 		{
 			#region Setup list post
 			int start = 0;
@@ -29,7 +28,7 @@ namespace SocialNetwork_New.Controller
 			}
 
 
-			if (SetupPostToQueue(start, dateCrawl) == 0)
+			if (SetupPostToQueue(start, dateCrawl, type) == 0)
 			{
 				start = 0;
 				File.WriteAllText(pathFile, $"{start}");
@@ -41,7 +40,7 @@ namespace SocialNetwork_New.Controller
 			#endregion
 
 			#region Setup token
-			if(SetupToken($"{Config_System.USER_LIVE}") == 0)
+			if (SetupToken($"{Config_System.USER_LIVE}") == 0)
 			{
 				return;
 			}
@@ -49,7 +48,7 @@ namespace SocialNetwork_New.Controller
 
 			#region Crawl
 			List<Task> listTask = new List<Task>();
-			for(byte i = 1; i <= totalThread; ++i)
+			for (byte i = 1; i <= totalThread; ++i)
 			{
 				listTask.Add(Run(i));
 			}
@@ -73,9 +72,9 @@ namespace SocialNetwork_New.Controller
 			#endregion
 		}
 
-		private int SetupPostToQueue(int start, DateTime dateCrawl)
+		private int SetupPostToQueue(int start, DateTime dateCrawl, byte type)
 		{
-			List<Temp_Group_Post_Model> listData = GetListPost(start, dateCrawl);
+			List<Temp_Group_Post_Model> listData = GetListPost(start, dateCrawl, type);
 			int len = 0;
 
 			if (listData.Any())
@@ -93,13 +92,13 @@ namespace SocialNetwork_New.Controller
 			return len;
 		}
 
-		private List<Temp_Group_Post_Model> GetListPost(int start, DateTime dateCrawl)
+		private List<Temp_Group_Post_Model> GetListPost(int start, DateTime dateCrawl, byte type)
 		{
 			List<Temp_Group_Post_Model> listData = new List<Temp_Group_Post_Model>();
 
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
 			{
-				listData = mysql.SelectTemp_Group_Post(start, dateCrawl);
+				listData = mysql.SelectTemp_Group_Post(start, dateCrawl, type);
 			}
 
 			return listData;
@@ -124,7 +123,7 @@ namespace SocialNetwork_New.Controller
 		{
 			string afterToken = "";
 			ushort limit = 1000;
-			long since = (long)Date_Helper.ConvertDateTimeToTimeStamp(data.Createdtime);
+			double since = Date_Helper.ConvertDateTimeToTimeStamp(data.Createdtime);
 			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
 			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79);
 			HttpClient_Helper client = new HttpClient_Helper();

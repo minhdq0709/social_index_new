@@ -91,11 +91,65 @@ namespace SocialNetwork_New.Helper
 			return metaData;
 		}
 
-		public List<Temp_Group_Post_Model> SelectTemp_Group_Post(int start, DateTime dateCrawl)
+		public List<Campain_Source_Links_Model> SelectFromTableCampaignSourceLink(int campainId)
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM FacebookDb.temp_grouppost where date(Getdate) = '{dateCrawl.ToString("yyyy-MM-dd")}' order by Comment desc limit {start}, 200;";
+			string query = $"SELECT * FROM FacebookDb.Campain_SourceLinks where CampainId = {campainId};";
+			MySqlCommand cmd = new MySqlCommand();
+			cmd.Connection = _conn;
+			cmd.CommandText = query;
+
+			List<Campain_Source_Links_Model> metaData = new List<Campain_Source_Links_Model>();
+			try
+			{
+				MySqlDataReader row = cmd.ExecuteReader();
+
+				if (row.HasRows)
+				{
+					while (row.Read())
+					{
+						try
+						{
+							metaData.Add(new Campain_Source_Links_Model
+							{
+								Id = Convert.ToInt32(row["Id"].ToString()),
+								CampainId = Convert.ToInt32(row["type"].ToString()),
+								LinkId = Convert.ToInt32(row["priority"].ToString()),
+								Url = row["frequency"].ToString(),
+								Name = row["Name"].ToString()
+							});
+						}
+						catch (Exception ex) { }
+					}
+				}
+
+				_conn.Close();
+			}
+			catch (Exception)
+			{
+				_conn.Close();
+			}
+
+			return metaData;
+		}
+
+		public List<Temp_Group_Post_Model> SelectTemp_Group_Post(int start, DateTime dateCrawl, byte type)
+		{
+			_conn.Open();
+
+			string query = $"SELECT * FROM FacebookDb.temp_grouppost where date(Getdate) = '{dateCrawl.ToString("yyyy-MM-dd")}'";
+
+			if(type == 0)
+			{
+				query += " and Id % 2 = 0";
+			}
+			else
+			{
+				query += " and Id % 2 != 0";
+			}
+
+			query += $" order by Comment desc limit {start}, 200;";
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
@@ -179,11 +233,21 @@ namespace SocialNetwork_New.Helper
 			return metaData;
 		}
 
-		public List<SiDemandSourcePost_Model> SelectFieldBaseFromTableSiDemandSourcePost(int start, string platform)
+		public List<SiDemandSourcePost_Model> SelectFieldBaseFromTableSiDemandSourcePost(int start, string platform, byte type)
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' and status in (0, -1) limit {start}, 200;";
+			string query = $"SELECT * FROM social_index_v2.si_demand_source_post where platform = '{platform}' and status in (0, -1)";
+			if(type == 0)
+			{
+				query += " and id % 2 = 0"; 
+			}
+			else
+			{
+				query += " and id % 2 != 0";
+			}
+
+			query += $" limit {start}, 200;";
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
@@ -225,11 +289,23 @@ namespace SocialNetwork_New.Helper
 			return metaData;
 		}
 
-		public List<Campaign_Post_Link_Model> SelectTableCampain_PostLinks(byte campaignId)
+		public List<Campaign_Post_Link_Model> SelectTableCampain_PostLinks(byte campaignId, byte type)
 		{
 			_conn.Open();
 
-			string query = $"SELECT * FROM FacebookDb.Campain_PostLinks where CampainId = {campaignId} and CampainFlatFormTypeId in (2, 3) and CrawlerStatus = 0 limit 0, 200;";
+			string query = $"SELECT * FROM FacebookDb.Campain_PostLinks where CampainId = {campaignId} and CampainFlatFormTypeId in (2, 3) and CrawlerStatus = 0";
+
+			if(type == 0)
+			{
+				query += " and Id % 2 = 0";
+			}
+			else
+			{
+				query += " and Id % 2 != 0";
+			}
+
+			query += " limit 0, 200;";
+
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.Connection = _conn;
 			cmd.CommandText = query;
@@ -597,14 +673,54 @@ namespace SocialNetwork_New.Helper
 			}
 		}
 
+		public int InsertToTableCampain_Contents_Facebook_Post(Campain_Contents_Facebook_Post_Model data)
+		{
+			try
+			{
+				_conn.Open();
+
+				string query = "INSERT IGNORE INTO FacebookDb.Campain_Contents_Facebook_Post(Id, PostID, Url, PostDate, LastDate, " +
+					"CountComment, CountLike, CountShare, AuthorId, AuthorName, " +
+					"PlatFromType, Content, Hastag, Reactions, Si_status) " +
+						"VALUES(@Id, @PostID, @Url, @PostDate, @LastDate," +
+						"@CountComment, @CountLike, @CountShare,@AuthorId, @AuthorName," +
+						"@PlatFromType, @Content, @Hastag, @Reactions, @Si_status)";
+
+				MySqlCommand cmd = new MySqlCommand();
+				cmd.Connection = _conn;
+				;
+				cmd.CommandText = query;
+
+				cmd.Parameters.Add("@source_post_id", MySqlDbType.VarChar).Value = data.post_id;
+				cmd.Parameters.Add("@create_time_post", MySqlDbType.Timestamp).Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+				cmd.Parameters.Add("@comments_real", MySqlDbType.Int32).Value = data.total_comment;
+				cmd.Parameters.Add("@shares_real", MySqlDbType.Int32).Value = data.total_share;
+
+				int row = cmd.ExecuteNonQuery();
+				_conn.Close();
+
+				return row;
+			}
+			catch (Exception ex)
+			{
+				File.AppendAllText($"{Environment.CurrentDirectory}/Check/Json3.txt", ex.ToString() + "\n");
+				if (_conn != null)
+				{
+					_conn.Close();
+				}
+
+				return 0;
+			}
+		}
+
 		public int InsertToTableHistoryFbPost(Temp_Group_Post_Model data)
 		{
 			try
 			{
 				_conn.Open();
 
-				string query = "INSERT IGNORE INTO FacebookDb.History_Fb_Post(source_post_id, create_time_post, comments_real, shares_real) " +
-						"VALUES(@source_post_id, @create_time_post, @comments_real, @shares_real)";
+				string query = "INSERT IGNORE INTO FacebookDb.History_Fb_Post(source_post_id, create_time_post, comments_real) " +
+						"VALUES(@source_post_id, @create_time_post, @comments_real)";
 
 				MySqlCommand cmd = new MySqlCommand();
 				cmd.Connection = _conn;

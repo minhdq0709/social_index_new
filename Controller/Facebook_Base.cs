@@ -123,13 +123,13 @@ namespace SocialNetwork_New.Controller
 			return _mapTokenSaveToHistory;
 		}
 
-		protected virtual List<Facebook_Post_Base_Model> GetListPost(int start, string platform)
+		protected virtual List<Facebook_Post_Base_Model> GetListPost(int start, string platform, byte type)
 		{
 			List<Facebook_Post_Base_Model> listData = new List<Facebook_Post_Base_Model>();
 
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
-				listData = mysql.SelectFieldBaseFromTableSiDemandSourcePost(start, platform).OfType<Facebook_Post_Base_Model>().ToList();
+				listData = mysql.SelectFieldBaseFromTableSiDemandSourcePost(start, platform, type).OfType<Facebook_Post_Base_Model>().ToList();
 			}
 
 			return listData;

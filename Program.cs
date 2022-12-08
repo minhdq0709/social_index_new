@@ -17,13 +17,15 @@ namespace SocialNetwork_New
 			Console.WriteLine("6: Youtube si demand source post");
 			Console.WriteLine("7: Alert account fb died");
 			Console.WriteLine("8: Update time count fb token daily");
-			Console.WriteLine("9: Si fb crawl comment");
+			Console.WriteLine("9: Fb si fb crawl comment");
 			Console.WriteLine("10: Fb campaign post link");
 			Console.WriteLine("11: Fb temp group post");
 
+			Console.WriteLine("Chon: ");
 			byte choose = byte.Parse(Console.ReadLine());
 			byte totalThread = 4;
 			byte isUpdateStatusTokenToDb = 0;
+			byte type = 0;
 
 			Scheduler sc = new Scheduler();
 
@@ -36,12 +38,18 @@ namespace SocialNetwork_New
 					Console.WriteLine("Nhap so thread: ");
 					totalThread = byte.Parse(Console.ReadLine());
 
+					Console.WriteLine("Co save status token? (1: Co, 0: ko)");
+					isUpdateStatusTokenToDb = byte.Parse(Console.ReadLine());
+
+					Console.WriteLine("0: chan, 1: le");
+					type = byte.Parse(Console.ReadLine());
+
 					while (true)
 					{
 						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
-							await fb.Crawl(totalThread);
+							await fb.Crawl(totalThread, isUpdateStatusTokenToDb, type);
 						}
 						catch (Exception ex)
 						{
@@ -241,12 +249,18 @@ namespace SocialNetwork_New
 					Console.WriteLine("Nhap campaign id: ");
 					byte campaignId = byte.Parse(Console.ReadLine());
 
+					Console.WriteLine("0: chan, 1: le");
+					type = byte.Parse(Console.ReadLine());
+
+					Console.WriteLine("Co save status token? (1: Co, 0: ko)");
+					isUpdateStatusTokenToDb = byte.Parse(Console.ReadLine());
+
 					while (true)
 					{
 						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
-							await fbcpl.Crawl(totalThread, campaignId);
+							await fbcpl.Crawl(totalThread, campaignId, type, isUpdateStatusTokenToDb);
 						}
 						catch (Exception ex)
 						{
@@ -267,12 +281,15 @@ namespace SocialNetwork_New
 					Console.WriteLine("Co save status token? (1: Co, 0: ko)");
 					isUpdateStatusTokenToDb = byte.Parse(Console.ReadLine());
 
+					Console.WriteLine("0: chan, 1: le");
+					type = byte.Parse(Console.ReadLine());
+
 					while (true)
 					{
 						Console.WriteLine($"Start at: {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}");
 						try
 						{
-							await fbtgp.Crawl(totalThread, isUpdateStatusTokenToDb);
+							await fbtgp.Crawl(totalThread, isUpdateStatusTokenToDb, type);
 						}
 						catch (Exception ex)
 						{

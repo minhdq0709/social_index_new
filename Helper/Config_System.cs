@@ -47,7 +47,7 @@
 
 		/* Type token */
 		public static readonly byte YOUTUBE_TOKEN = 1;
-		public static readonly byte TIKTOK_135_TOKEN = 2;
+		public static readonly byte TIKTOK_135_TOKEN = 2; // 1_000 req/day
 		public static readonly byte TWITTER_TOKEN = 3;
 
 		/* Status crawl */

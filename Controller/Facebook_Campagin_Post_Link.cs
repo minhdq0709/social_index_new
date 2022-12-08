@@ -14,10 +14,10 @@ namespace SocialNetwork_New.Controller
 	{
 		private volatile ConcurrentQueue<Campaign_Post_Link_Model> _myQueue = new ConcurrentQueue<Campaign_Post_Link_Model>();
 
-		public async Task Crawl(byte totalThread, byte campaginId)
+		public async Task Crawl(byte totalThread, byte campaginId, byte type, byte isUpdateStatusTokenToDb)
 		{
 			#region Setup list post
-			if (SetupPostToQueue(campaginId) == 0)
+			if (SetupPostToQueue(campaginId, type) == 0)
 			{
 				return;
 			}
@@ -46,7 +46,10 @@ namespace SocialNetwork_New.Controller
 			#endregion
 
 			#region Update status token to db
-			UpdateStatusToken(GetInstanceMapHistoryToken());
+			if (type == 1)
+			{
+				UpdateStatusToken(GetInstanceMapHistoryToken());
+			}
 			#endregion
 
 			#region Free memory
@@ -54,9 +57,9 @@ namespace SocialNetwork_New.Controller
 			#endregion
 		}
 
-		private int SetupPostToQueue(byte campaginId)
+		private int SetupPostToQueue(byte campaginId, byte type)
 		{
-			IEnumerable<Campaign_Post_Link_Model> listData = GetListPost(campaginId);
+			IEnumerable<Campaign_Post_Link_Model> listData = GetListPost(campaginId, type);
 
 			foreach (Campaign_Post_Link_Model item in listData)
 			{
@@ -66,13 +69,13 @@ namespace SocialNetwork_New.Controller
 			return listData.Count();
 		}
 
-		private IEnumerable<Campaign_Post_Link_Model> GetListPost(byte campaginId)
+		private IEnumerable<Campaign_Post_Link_Model> GetListPost(byte campaginId, byte type)
 		{
 			IEnumerable<Campaign_Post_Link_Model> listData;
 
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79))
 			{
-				listData = mysql.SelectTableCampain_PostLinks(campaginId);
+				listData = mysql.SelectTableCampain_PostLinks(campaginId, type);
 			}
 
 			return listData;
@@ -101,7 +104,7 @@ namespace SocialNetwork_New.Controller
 		{
 			string afterToken = "";
 			ushort limit = 1000;
-			long since = (long)Date_Helper.ConvertDateTimeToTimeStamp(data.LastUpdate);
+			double since = Date_Helper.ConvertDateTimeToTimeStamp(data.LastUpdate);
 			Kafka_Helper kh = new Kafka_Helper(Config_System.SERVER_LINK);
 			My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_FB_2_207 : Config_System.DB_FB_51_79);
 			HttpClient_Helper client = new HttpClient_Helper();

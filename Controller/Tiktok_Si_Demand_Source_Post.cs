@@ -2,7 +2,6 @@
 using SocialNetwork_New.Model;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,24 +17,10 @@ namespace SocialNetwork_New.Controller
 		public async Task Crawl(byte totalThread)
 		{
 			#region Setup list post
-			int start = 0;
-			string pathFile = $"{GetInstancePathFolder()}/start.txt";
-
-			if (File.Exists(pathFile))
+			if (SetupListPost(0) == 0)
 			{
-				string text = File.ReadAllText(pathFile);
-				start = int.Parse(text);
-			}
-
-			if (SetupListPost(start) == 0)
-			{
-				start = 0;
-				File.WriteAllText(pathFile, $"{start}");
-
 				return;
 			}
-
-			File.WriteAllText(pathFile, $"{start + 200}");
 			#endregion
 
 			#region Setup token
@@ -131,6 +116,7 @@ namespace SocialNetwork_New.Controller
 			}
 
 			kf.Dispose();
+
 			/* Update in4 post to db */
 			using (My_SQL_Helper mysql = new My_SQL_Helper(Config_System.ON_SEVER == 1 ? Config_System.DB_SOCIAL_INDEX_V2_2_207 : Config_System.DB_SOCIAL_INDEX_V2_51_79))
 			{
