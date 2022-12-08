@@ -89,7 +89,18 @@ namespace SocialNetwork_New.Controller
 				{
 					foreach (Tiktok_API6_Rapid_Model.Video item in data.videos)
 					{
+						Campain_Contents_Facebook_Post_Model fb = new Campain_Contents_Facebook_Post_Model();
+						fb.PostID = item.video_id;
+						fb.CountComment = item.statistics.number_of_comments;
+						fb.CountLike = item.statistics.number_of_hearts;
+						fb.CountShare = item.statistics.number_of_reposts;
+						fb.AuthorId = item.author_id;
+						fb.AuthorName = item.author_name;
+						fb.Url = item.download_url;
+						fb.Content = item.description;
 
+						listData.Add(fb);
+						
 					}
 				}
 			}

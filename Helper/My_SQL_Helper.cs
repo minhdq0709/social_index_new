@@ -691,12 +691,23 @@ namespace SocialNetwork_New.Helper
 				;
 				cmd.CommandText = query;
 
-				cmd.Parameters.Add("@source_post_id", MySqlDbType.VarChar).Value = data.post_id;
-				cmd.Parameters.Add("@create_time_post", MySqlDbType.Timestamp).Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-				cmd.Parameters.Add("@comments_real", MySqlDbType.Int32).Value = data.total_comment;
-				cmd.Parameters.Add("@shares_real", MySqlDbType.Int32).Value = data.total_share;
+                cmd.Parameters.Add("@Id", MySqlDbType.VarChar).Value = data.Id;
+                cmd.Parameters.Add("@PostID", MySqlDbType.VarChar).Value = data.PostID;
+				cmd.Parameters.Add("@Url", MySqlDbType.VarChar).Value = data.Url;
+				cmd.Parameters.Add("@PostDate", MySqlDbType.Timestamp).Value = data.PostDate;
+				cmd.Parameters.Add("@LastDate", MySqlDbType.Timestamp).Value = data.LastDate;
+				cmd.Parameters.Add("@CountComment", MySqlDbType.Int32).Value = data.CountComment;
+				cmd.Parameters.Add("@CountLike", MySqlDbType.Int32).Value = data.CountLike;
+				cmd.Parameters.Add("@CountShare", MySqlDbType.Int32).Value = data.CountShare;
+                cmd.Parameters.Add("@AuthorId", MySqlDbType.VarChar).Value = data.AuthorId;
+                cmd.Parameters.Add("@AuthorName", MySqlDbType.VarChar).Value = data.AuthorName;
+                cmd.Parameters.Add("@PlatFromType", MySqlDbType.VarChar).Value = data.PlatFromType;
+                cmd.Parameters.Add("@Content", MySqlDbType.VarChar).Value = data.Content;
+                cmd.Parameters.Add("@Hastag", MySqlDbType.VarChar).Value = data.Hastag;
+                cmd.Parameters.Add("@Reactions", MySqlDbType.Int32).Value = data.Reactions;
+                cmd.Parameters.Add("@Si_status", MySqlDbType.Int32).Value = data.Si_status;
 
-				int row = cmd.ExecuteNonQuery();
+                int row = cmd.ExecuteNonQuery();
 				_conn.Close();
 
 				return row;
